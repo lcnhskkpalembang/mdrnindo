@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bahasa Indonesia & Mandarin by lcnpalembang-08994477998</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fce4ec 0%, #e3f2fd 50%, #f3e5f5 100%);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px; color: #37474f;
+  }
+  .header { text-align: center; margin-bottom: 20px; animation: fadeIn 0.8s ease; }
+  .header h1 { font-size: 2rem; color: #5c6bc0; margin-bottom: 8px; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); }
+  .header p { color: #78909c; font-size: 1rem; }
+  .categories { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+  .cat-btn {
+    padding: 10px 20px; border: none; border-radius: 25px; background: white;
+    color: #5c6bc0; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08); transition: all 0.3s;
+  }
+  .cat-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.12); }
+  .cat-btn.active { background: linear-gradient(135deg, #7986cb, #9575cd); color: white; }
+  .card-container { perspective: 1200px; width: 100%; max-width: 480px; margin: 10px 0; }
+  .card {
+    position: relative; width: 100%; min-height: 380px; background: white;
+    border-radius: 25px; padding: 35px 30px;
+    box-shadow: 0 15px 40px rgba(92, 107, 192, 0.15);
+    transition: transform 0.6s; transform-style: preserve-3d;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .card-front, .card-back {
+    width: 100%; backface-visibility: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .card-back {
+    position: absolute; top: 0; left: 0; height: 100%;
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, #fff3e0, #fce4ec);
+    border-radius: 25px; padding: 35px 30px;
+  }
+  .category-tag {
+    display: inline-block; padding: 5px 14px; background: #e8eaf6;
+    color: #5c6bc0; border-radius: 15px; font-size: 0.8rem;
+    font-weight: 600; margin-bottom: 20px; letter-spacing: 0.5px;
+  }
+  .indonesian { font-size: 2.8rem; font-weight: 700; color: #3949ab; margin-bottom: 15px; line-height: 1.2; }
+  .syllable {
+    font-size: 1.6rem; color: #ec407a; font-weight: 500; margin-bottom: 20px;
+    letter-spacing: 2px; background: #fce4ec; padding: 8px 20px; border-radius: 15px;
+  }
+  .chinese { font-size: 2.2rem; color: #6a1b9a; font-weight: 600; margin-bottom: 25px; }
+  .audio-btn {
+    background: linear-gradient(135deg, #ff8a80, #ff5252); color: white; border: none;
+    width: 65px; height: 65px; border-radius: 50%; font-size: 1.8rem; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255, 82, 82, 0.4); transition: all 0.3s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .audio-btn:hover { transform: scale(1.1); box-shadow: 0 8px 25px rgba(255, 82, 82, 0.5); }
+  .audio-btn:active { transform: scale(0.95); }
+  .audio-btn.playing { animation: pulse 0.8s infinite; }
+  .audio-label { margin-top: 10px; color: #78909c; font-size: 0.85rem; font-weight: 500; }
+  .flip-hint { position: absolute; bottom: 15px; right: 20px; color: #b0bec5; font-size: 0.75rem; }
+  .example-sentence {
+    margin-top: 20px; padding: 15px 20px; background: rgba(255,255,255,0.7);
+    border-radius: 15px; border-left: 4px solid #7986cb; width: 100%;
+  }
+  .example-sentence .label { font-size: 0.8rem; color: #5c6bc0; font-weight: 600; margin-bottom: 5px; }
+  .example-sentence .id { font-size: 1.1rem; color: #37474f; margin-bottom: 5px; }
+  .example-sentence .syl { font-size: 0.95rem; color: #ec407a; margin-bottom: 5px; }
+  .example-sentence .zh { font-size: 1.05rem; color: #6a1b9a; }
+  .controls { display: flex; gap: 12px; margin: 20px 0; flex-wrap: wrap; justify-content: center; }
+  .ctrl-btn {
+    padding: 12px 22px; border: none; border-radius: 20px; background: white;
+    color: #5c6bc0; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: all 0.3s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ctrl-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.12); }
+  .ctrl-btn.primary { background: linear-gradient(135deg, #7986cb, #9575cd); color: white; }
+  .progress { text-align: center; color: #78909c; font-size: 0.95rem; font-weight: 500; margin-bottom: 10px; }
+  .progress-bar {
+    width: 100%; max-width: 480px; height: 8px;
+    background: rgba(255,255,255,0.6); border-radius: 10px; overflow: hidden; margin-bottom: 15px;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, #7986cb, #ec407a);
+    transition: width 0.4s ease; border-radius: 10px;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 6px 20px rgba(255, 82, 82, 0.4); }
+    50% { box-shadow: 0 6px 30px rgba(255, 82, 82, 0.8); }
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  .card.animate-in { animation: slideIn 0.4s ease; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @media (max-width: 500px) {
+    .header h1 { font-size: 1.5rem; }
+    .indonesian { font-size: 2.2rem; }
+    .chinese { font-size: 1.8rem; }
+    .syllable { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Belajar Bahasa Indonesia & Mandarin</h1>
+  <p>学印尼语 & 汉语 — By lcnpalembang-08994477998</p>
+</div>
+
+<div class="categories" id="categories"></div>
+
+<div class="progress" id="progress">1 / 1</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+
+<div class="card-container">
+  <div class="card" id="card">
+    <div class="card-front" id="cardFront"></div>
+    <div class="card-back" id="cardBack"></div>
+    <div class="flip-hint">👆 Klik untuk balik</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" onclick="prevCard()">⬅️ Sebelumnya</button>
+  <button class="ctrl-btn primary" onclick="playAudio()">🔊 Dengar</button>
+  <button class="ctrl-btn" onclick="nextCard()">Selanjutnya ➡️</button>
+  <button class="ctrl-btn" onclick="shuffleCards()">🔀 Acak</button>
+</div>
+
+<script>
+  const data = {
+    /* ====================== BAHASA INDONESIA ====================== */
+    "Salam & Ungkapan": [
+      {id:"halo", syl:"ha-lo", zh:"你好", ex:"Halo, apa kabar?", exSyl:"ha-lo, a-pa ka-bar", exZh:"你好，你好吗？"},
+      {id:"terima kasih", syl:"te-ri-ma ka-sih", zh:"谢谢", ex:"Terima kasih banyak!", exSyl:"te-ri-ma ka-sih ba-nyak", exZh:"非常感谢！"},
+      {id:"sama-sama", syl:"sa-ma-sa-ma", zh:"不客气", ex:"Sama-sama, senang membantu.", exSyl:"sa-ma-sa-ma, se-nang mem-ban-tu", exZh:"不客气，很高兴能帮忙。"},
+      {id:"maaf", syl:"ma-af", zh:"对不起", ex:"Maaf, saya terlambat.", exSyl:"ma-af, sa-ya ter-lam-bat", exZh:"对不起，我迟到了。"},
+      {id:"permisi", syl:"per-mi-si", zh:"请问 / 借过", ex:"Permisi, boleh lewat?", exSyl:"per-mi-si, bo-leh le-wat", exZh:"借过，可以过吗？"},
+      {id:"selamat pagi", syl:"se-la-mat pa-gi", zh:"早上好", ex:"Selamat pagi, Bu Guru!", exSyl:"se-la-mat pa-gi, bu gu-ru", exZh:"老师早上好！"},
+      {id:"selamat siang", syl:"se-la-mat si-ang", zh:"中午好", ex:"Selamat siang, semuanya.", exSyl:"se-la-mat si-ang, se-mua-nya", exZh:"大家中午好。"},
+      {id:"selamat sore", syl:"se-la-mat so-re", zh:"下午好", ex:"Selamat sore, Pak.", exSyl:"se-la-mat so-re, pak", exZh:"先生下午好。"},
+      {id:"selamat malam", syl:"se-la-mat ma-lam", zh:"晚上好", ex:"Selamat malam, teman-teman.", exSyl:"se-la-mat ma-lam, te-man-te-man", exZh:"朋友们晚上好。"},
+      {id:"sampai jumpa", syl:"sam-pai jum-pa", zh:"再见", ex:"Sampai jumpa besok!", exSyl:"sam-pai jum-pa be-sok", exZh:"明天见！"},
+      {id:"apa kabar?", syl:"a-pa ka-bar", zh:"你好吗？", ex:"Apa kabar? Saya baik.", exSyl:"a-pa ka-bar? sa-ya ba-ik", exZh:"你好吗？我很好。"},
+      {id:"baik", syl:"ba-ik", zh:"好", ex:"Saya baik-baik saja.", exSyl:"sa-ya ba-ik ba-ik sa-ja", exZh:"我很好。"},
+      {id:"tidak", syl:"ti-dak", zh:"不 / 不是", ex:"Tidak, terima kasih.", exSyl:"ti-dak, te-ri-ma ka-sih", exZh:"不用了，谢谢。"},
+      {id:"ya", syl:"ya", zh:"是 / 对", ex:"Ya, saya mengerti.", exSyl:"ya, sa-ya me-nger-ti", exZh:"是的，我明白。"},
+      {id:"boleh", syl:"bo-leh", zh:"可以", ex:"Boleh saya masuk?", exSyl:"bo-leh sa-ya ma-suk", exZh:"我可以进去吗？"},
+      {id:"tidak boleh", syl:"ti-dak bo-leh", zh:"不可以", ex:"Tidak boleh merokok di sini.", exSyl:"ti-dak bo-leh me-ro-kok di si-ni", exZh:"这里不可以吸烟。"},
+      {id:"silakan", syl:"si-la-kan", zh:"请", ex:"Silakan duduk.", exSyl:"si-la-kan du-duk", exZh:"请坐。"},
+      {id:"tunggu", syl:"tung-gu", zh:"等", ex:"Tunggu sebentar, ya.", exSyl:"tung-gu se-ben-tar, ya", exZh:"请稍等一下。"},
+      {id:"sebentar", syl:"se-ben-tar", zh:"一会儿", ex:"Tunggu sebentar saja.", exSyl:"tung-gu se-ben-tar sa-ja", exZh:"只等一会儿。"},
+      {id:"tolong", syl:"to-long", zh:"请帮忙", ex:"Tolong bantu saya.", exSyl:"to-long ban-tu sa-ya", exZh:"请帮帮我。"},
+      {id:"bantu saya", syl:"ban-tu sa-ya", zh:"帮帮我", ex:"Tolong bantu saya, Pak.", exSyl:"to-long ban-tu sa-ya, pak", exZh:"先生请帮帮我。"},
+      {id:"saya tidak mengerti", syl:"sa-ya ti-dak me-nger-ti", zh:"我不明白", ex:"Maaf, saya tidak mengerti.", exSyl:"ma-af, sa-ya ti-dak me-nger-ti", exZh:"对不起，我不明白。"},
+      {id:"saya mengerti", syl:"sa-ya me-nger-ti", zh:"我明白", ex:"Sekarang saya mengerti.", exSyl:"se-ka-rang sa-ya me-nger-ti", exZh:"现在我明白了。"},
+      {id:"ulangi lagi", syl:"u-la-ngi la-gi", zh:"再说一遍", ex:"Tolong ulangi lagi.", exSyl:"to-long u-la-ngi la-gi", exZh:"请再说一遍。"},
+      {id:"pelan-pelan", syl:"pe-lan-pe-lan", zh:"慢一点", ex:"Bicara pelan-pelan, ya.", exSyl:"bi-ca-ra pe-lan-pe-lan, ya", exZh:"请说慢一点。"},
+      {id:"cepat", syl:"ce-pat", zh:"快", ex:"Ayo cepat!", exSyl:"a-yo ce-pat", exZh:"快点！"},
+      {id:"hati-hati", syl:"ha-ti-ha-ti", zh:"小心", ex:"Hati-hati di jalan!", exSyl:"ha-ti-ha-ti di ja-lan", exZh:"路上小心！"}
+    ],
+    "Rumah 🏠": [
+      {id:"rumah", syl:"ru-mah", zh:"家", ex:"Ini rumah saya.", exSyl:"i-ni ru-mah sa-ya", exZh:"这是我的家。"},
+      {id:"kamar", syl:"ka-mar", zh:"房间", ex:"Kamar saya besar.", exSyl:"ka-mar sa-ya be-sar", exZh:"我的房间很大。"},
+      {id:"ruang tamu", syl:"ru-ang ta-mu", zh:"客厅", ex:"Ayah di ruang tamu.", exSyl:"a-yah di ru-ang ta-mu", exZh:"爸爸在客厅。"},
+      {id:"dapur", syl:"da-pur", zh:"厨房", ex:"Ibu memasak di dapur.", exSyl:"i-bu me-ma-sak di da-pur", exZh:"妈妈在厨房做饭。"},
+      {id:"kamar mandi", syl:"ka-mar man-di", zh:"浴室", ex:"Kamar mandi di sana.", exSyl:"ka-mar man-di di sa-na", exZh:"浴室在那边。"},
+      {id:"toilet", syl:"to-i-let", zh:"厕所", ex:"Di mana toilet?", exSyl:"di ma-na to-i-let", exZh:"厕所在哪里？"},
+      {id:"pintu", syl:"pin-tu", zh:"门", ex:"Tolong tutup pintunya.", exSyl:"to-long tu-tup pin-tu-nya", exZh:"请关门。"},
+      {id:"jendela", syl:"jen-de-la", zh:"窗户", ex:"Buka jendela, ya.", exSyl:"bu-ka jen-de-la, ya", exZh:"请打开窗户。"},
+      {id:"meja", syl:"me-ja", zh:"桌子", ex:"Buku ada di meja.", exSyl:"bu-ku a-da di me-ja", exZh:"书在桌子上。"},
+      {id:"kursi", syl:"kur-si", zh:"椅子", ex:"Silakan duduk di kursi.", exSyl:"si-la-kan du-duk di kur-si", exZh:"请坐在椅子上。"},
+      {id:"tempat tidur", syl:"tem-pat ti-dur", zh:"床", ex:"Saya tidur di tempat tidur.", exSyl:"sa-ya ti-dur di tem-pat ti-dur", exZh:"我在床上睡觉。"},
+      {id:"lemari", syl:"le-ma-ri", zh:"衣柜", ex:"Baju ada di lemari.", exSyl:"ba-ju a-da di le-ma-ri", exZh:"衣服在衣柜里。"},
+      {id:"televisi", syl:"te-le-vi-si", zh:"电视", ex:"Kami menonton televisi.", exSyl:"ka-mi me-no-non te-le-vi-si", exZh:"我们看电视。"},
+      {id:"kulkas", syl:"kul-kas", zh:"冰箱", ex:"Air dingin di kulkas.", exSyl:"a-ir di-ngin di kul-kas", exZh:"冷水在冰箱里。"},
+      {id:"kipas", syl:"ki-pas", zh:"风扇", ex:"Nyalakan kipas, panas.", exSyl:"nya-la-kan ki-pas, pa-nas", exZh:"开风扇，好热。"}
+    ],
+    "Sekolah 🎓": [
+      {id:"sekolah", syl:"se-ko-lah", zh:"学校", ex:"Saya pergi ke sekolah.", exSyl:"sa-ya per-gi ke se-ko-lah", exZh:"我去学校。"},
+      {id:"guru", syl:"gu-ru", zh:"老师", ex:"Guru saya baik.", exSyl:"gu-ru sa-ya ba-ik", exZh:"我的老师很好。"},
+      {id:"murid", syl:"mu-rid", zh:"学生", ex:"Murid sedang belajar.", exSyl:"mu-rid se-dang be-la-jar", exZh:"学生正在学习。"},
+      {id:"siswa", syl:"sis-wa", zh:"学生", ex:"Siswa-siswa rajin.", exSyl:"sis-wa-sis-wa ra-jin", exZh:"学生们很勤奋。"},
+      {id:"kelas", syl:"ke-las", zh:"教室 / 班级", ex:"Saya di kelas sekarang.", exSyl:"sa-ya di ke-las se-ka-rang", exZh:"我现在在教室。"},
+      {id:"buku", syl:"bu-ku", zh:"书", ex:"Ini buku baru saya.", exSyl:"i-ni bu-ku ba-ru sa-ya", exZh:"这是我的新书。"},
+      {id:"pensil", syl:"pen-sil", zh:"铅笔", ex:"Saya butuh pensil.", exSyl:"sa-ya bu-tuh pen-sil", exZh:"我需要铅笔。"},
+      {id:"penghapus", syl:"peng-ha-pus", zh:"橡皮", ex:"Pinjam penghapus, ya.", exSyl:"pin-jam peng-ha-pus, ya", exZh:"借一下橡皮。"},
+      {id:"papan tulis", syl:"pa-pan tu-lis", zh:"黑板", ex:"Guru menulis di papan tulis.", exSyl:"gu-ru me-nu-lis di pa-pan tu-lis", exZh:"老师在黑板上写字。"},
+      {id:"belajar", syl:"be-la-jar", zh:"学习", ex:"Saya belajar bahasa Indonesia.", exSyl:"sa-ya be-la-jar ba-ha-sa in-do-ne-si-a", exZh:"我学印尼语。"},
+      {id:"membaca", syl:"mem-ba-ca", zh:"阅读", ex:"Saya suka membaca buku.", exSyl:"sa-ya su-ka mem-ba-ca bu-ku", exZh:"我喜欢看书。"},
+      {id:"menulis", syl:"me-nu-lis", zh:"写", ex:"Saya menulis surat.", exSyl:"sa-ya me-nu-lis su-rat", exZh:"我写信。"},
+      {id:"bertanya", syl:"ber-ta-nya", zh:"问", ex:"Boleh saya bertanya?", exSyl:"bo-leh sa-ya ber-ta-nya", exZh:"我可以问吗？"},
+      {id:"menjawab", syl:"men-ja-wab", zh:"回答", ex:"Guru menjawab pertanyaan.", exSyl:"gu-ru men-ja-wab per-ta-nya-an", exZh:"老师回答问题。"},
+      {id:"ujian", syl:"u-ji-an", zh:"考试", ex:"Besok ada ujian.", exSyl:"be-sok a-da u-ji-an", exZh:"明天有考试。"}
+    ],
+
+    /* ====================== BAHASA MANDARIN ====================== */
+    "中文：家 🏠": [
+      /* Orang & bagian rumah */
+      {id:"家", syl:"jiā", zh:"rumah/keluarga", ex:"我家有四个人。", exSyl:"wǒ jiā yǒu sì gè rén", exZh:"Keluarga saya ada empat orang."},
+      {id:"房子", syl:"fángzi", zh:"rumah", ex:"我的房子很大。", exSyl:"wǒ de fángzi hěn dà", exZh:"Rumah saya besar."},
+      {id:"家里", syl:"jiā lǐ", zh:"di rumah", ex:"我在家里。", exSyl:"wǒ zài jiā lǐ", exZh:"Saya di rumah."},
+      {id:"房间", syl:"fángjiān", zh:"kamar", ex:"这是我的房间。", exSyl:"zhè shì wǒ de fángjiān", exZh:"Ini kamar saya."},
+      {id:"客厅", syl:"kètīng", zh:"ruang tamu", ex:"他在客厅。", exSyl:"tā zài kètīng", exZh:"Dia di ruang tamu."},
+      {id:"卧室", syl:"wòshì", zh:"kamar tidur", ex:"卧室很干净。", exSyl:"wòshì hěn gānjìng", exZh:"Kamar tidurnya sangat bersih."},
+      {id:"厨房", syl:"chúfáng", zh:"dapur", ex:"妈妈在厨房。", exSyl:"māma zài chúfáng", exZh:"Ibu di dapur."},
+      {id:"厕所", syl:"cèsuǒ", zh:"toilet", ex:"厕所在哪里？", exSyl:"cèsuǒ zài nǎlǐ", exZh:"Toiletnya di mana?"},
+      {id:"浴室", syl:"yùshì", zh:"kamar mandi", ex:"浴室在右边。", exSyl:"yùshì zài yòubian", exZh:"Kamar mandi di sebelah kanan."},
+      {id:"阳台", syl:"yángtái", zh:"balkon", ex:"阳台上有很多花。", exSyl:"yángtái shàng yǒu hěn duō huā", exZh:"Di balkon ada banyak bunga."},
+      {id:"门", syl:"mén", zh:"pintu", ex:"请关门。", exSyl:"qǐng guān mén", exZh:"Tolong tutup pintunya."},
+      {id:"窗户", syl:"chuānghu", zh:"jendela", ex:"请打开窗户。", exSyl:"qǐng dǎkāi chuānghu", exZh:"Tolong buka jendela."},
+      {id:"地板", syl:"dìbǎn", zh:"lantai", ex:"地板很干净。", exSyl:"dìbǎn hěn gānjìng", exZh:"Lantainya sangat bersih."},
+      {id:"墙", syl:"qiáng", zh:"dinding", ex:"墙上有一幅画。", exSyl:"qiáng shàng yǒu yì fú huà", exZh:"Di dinding ada sebuah lukisan."},
+      {id:"屋顶", syl:"wūdǐng", zh:"atap", ex:"屋顶是红色的。", exSyl:"wūdǐng shì hóngsè de", exZh:"Atapnya berwarna merah."},
+      /* Benda sehari-hari */
+      {id:"桌子", syl:"zhuōzi", zh:"meja", ex:"书在桌子上。", exSyl:"shū zài zhuōzi shàng", exZh:"Buku ada di atas meja."},
+      {id:"椅子", syl:"yǐzi", zh:"kursi", ex:"请坐椅子。", exSyl:"qǐng zuò yǐzi", exZh:"Silakan duduk di kursi."},
+      {id:"床", syl:"chuáng", zh:"tempat tidur", ex:"我在床上。", exSyl:"wǒ zài chuáng shàng", exZh:"Saya di atas tempat tidur."},
+      {id:"沙发", syl:"shāfā", zh:"sofa", ex:"沙发很舒服。", exSyl:"shāfā hěn shūfu", exZh:"Sofanya sangat nyaman."},
+      {id:"电视", syl:"diànshì", zh:"televisi", ex:"我在看电视。", exSyl:"wǒ zài kàn diànshì", exZh:"Saya sedang menonton TV."},
+      {id:"电脑", syl:"diànnǎo", zh:"komputer", ex:"这是我的电脑。", exSyl:"zhè shì wǒ de diànnǎo", exZh:"Ini komputer saya."},
+      {id:"手机", syl:"shǒujī", zh:"HP", ex:"我的手机在哪里？", exSyl:"wǒ de shǒujī zài nǎlǐ", exZh:"HP saya di mana?"},
+      {id:"冰箱", syl:"bīngxiāng", zh:"kulkas", ex:"冰箱里有水。", exSyl:"bīngxiāng lǐ yǒu shuǐ", exZh:"Di kulkas ada air."},
+      {id:"洗衣机", syl:"xǐyījī", zh:"mesin cuci", ex:"洗衣机在浴室。", exSyl:"xǐyījī zài yùshì", exZh:"Mesin cuci ada di kamar mandi."},
+      {id:"空调", syl:"kōngtiáo", zh:"AC", ex:"请开空调。", exSyl:"qǐng kāi kōngtiáo", exZh:"Tolong nyalakan AC."},
+      {id:"风扇", syl:"fēngshàn", zh:"kipas", ex:"风扇在桌子上。", exSyl:"fēngshàn zài zhuōzi shàng", exZh:"Kipas ada di atas meja."},
+      {id:"灯", syl:"dēng", zh:"lampu", ex:"请关灯。", exSyl:"qǐng guān dēng", exZh:"Tolong matikan lampunya."},
+      {id:"钥匙", syl:"yàoshi", zh:"kunci", ex:"我的钥匙在哪里？", exSyl:"wǒ de yàoshi zài nǎlǐ", exZh:"Kunci saya di mana?"},
+      {id:"钱包", syl:"qiánbāo", zh:"dompet", ex:"钱包在包里。", exSyl:"qiánbāo zài bāo lǐ", exZh:"Dompet ada di dalam tas."},
+      {id:"书", syl:"shū", zh:"buku", ex:"我喜欢看书。", exSyl:"wǒ xǐhuan kàn shū", exZh:"Saya suka membaca buku."},
+      {id:"衣服", syl:"yīfu", zh:"pakaian", ex:"这件衣服很好看。", exSyl:"zhè jiàn yīfu hěn hǎokàn", exZh:"Pakaian ini bagus sekali."},
+      {id:"鞋", syl:"xié", zh:"sepatu", ex:"这双鞋多少钱？", exSyl:"zhè shuāng xié duōshao qián", exZh:"Sepatu ini berapa harganya?"},
+      {id:"毛巾", syl:"máojīn", zh:"handuk", ex:"毛巾在浴室。", exSyl:"máojīn zài yùshì", exZh:"Handuk ada di kamar mandi."},
+      {id:"牙刷", syl:"yáshuā", zh:"sikat gigi", ex:"我的牙刷是蓝色的。", exSyl:"wǒ de yáshuā shì lánsè de", exZh:"Sikat gigi saya berwarna biru."},
+      {id:"牙膏", syl:"yágāo", zh:"pasta gigi", ex:"牙膏用完了。", exSyl:"yágāo yòng wán le", exZh:"Pasta giginya sudah habis."},
+      /* Aktivitas */
+      {id:"起床", syl:"qǐchuáng", zh:"bangun tidur", ex:"我每天七点起床。", exSyl:"wǒ měitiān qī diǎn qǐchuáng", exZh:"Saya bangun jam tujuh setiap hari."},
+      {id:"睡觉", syl:"shuìjiào", zh:"tidur", ex:"我要睡觉了。", exSyl:"wǒ yào shuìjiào le", exZh:"Saya mau tidur."},
+      {id:"洗脸", syl:"xǐliǎn", zh:"mencuci muka", ex:"我去洗脸。", exSyl:"wǒ qù xǐliǎn", exZh:"Saya pergi mencuci muka."},
+      {id:"刷牙", syl:"shuāyá", zh:"menyikat gigi", ex:"记得刷牙。", exSyl:"jìde shuāyá", exZh:"Ingat sikat gigi."},
+      {id:"洗澡", syl:"xǐzǎo", zh:"mandi", ex:"我要洗澡。", exSyl:"wǒ yào xǐzǎo", exZh:"Saya mau mandi."},
+      {id:"穿衣服", syl:"chuān yīfu", zh:"memakai pakaian", ex:"快点穿衣服。", exSyl:"kuài diǎn chuān yīfu", exZh:"Cepat pakai pakaian."},
+      {id:"做饭", syl:"zuòfàn", zh:"memasak", ex:"妈妈在做饭。", exSyl:"māma zài zuòfàn", exZh:"Ibu sedang memasak."},
+      {id:"吃饭", syl:"chīfàn", zh:"makan", ex:"我们一起吃饭。", exSyl:"wǒmen yìqǐ chīfàn", exZh:"Kita makan bersama."},
+      {id:"喝水", syl:"hē shuǐ", zh:"minum air", ex:"多喝水。", exSyl:"duō hē shuǐ", exZh:"Banyak minum air."},
+      {id:"看电视", syl:"kàn diànshì", zh:"menonton TV", ex:"我们在看电视。", exSyl:"wǒmen zài kàn diànshì", exZh:"Kami sedang menonton TV."},
+      {id:"玩手机", syl:"wán shǒujī", zh:"bermain HP", ex:"他在玩手机。", exSyl:"tā zài wán shǒujī", exZh:"Dia sedang bermain HP."},
+      {id:"打扫", syl:"dǎsǎo", zh:"membersihkan", ex:"我在打扫房间。", exSyl:"wǒ zài dǎsǎo fángjiān", exZh:"Saya sedang membersihkan kamar."},
+      {id:"洗衣服", syl:"xǐ yīfu", zh:"mencuci pakaian", ex:"我在洗衣服。", exSyl:"wǒ zài xǐ yīfu", exZh:"Saya sedang mencuci pakaian."},
+      {id:"睡午觉", syl:"shuì wǔjiào", zh:"tidur siang", ex:"我要睡午觉。", exSyl:"wǒ yào shuì wǔjiào", exZh:"Saya mau tidur siang."}
+    ],
+
+    "中文：学校 🏫": [
+      /* Tempat */
+      {id:"学校", syl:"xuéxiào", zh:"sekolah", ex:"我去学校。", exSyl:"wǒ qù xuéxiào", exZh:"Saya pergi ke sekolah."},
+      {id:"教室", syl:"jiàoshì", zh:"ruang kelas", ex:"教室很大。", exSyl:"jiàoshì hěn dà", exZh:"Ruang kelasnya besar."},
+      {id:"办公室", syl:"bàngōngshì", zh:"kantor", ex:"老师在办公室。", exSyl:"lǎoshī zài bàngōngshì", exZh:"Guru ada di kantor."},
+      {id:"图书馆", syl:"túshūguǎn", zh:"perpustakaan", ex:"我去图书馆看书。", exSyl:"wǒ qù túshūguǎn kàn shū", exZh:"Saya pergi ke perpustakaan membaca buku."},
+      {id:"操场", syl:"cāochǎng", zh:"lapangan", ex:"学生在操场跑步。", exSyl:"xuésheng zài cāochǎng pǎobù", exZh:"Murid berlari di lapangan."},
+      {id:"食堂", syl:"shítáng", zh:"kantin", ex:"我们在食堂吃饭。", exSyl:"wǒmen zài shítáng chīfàn", exZh:"Kami makan di kantin."},
+      {id:"实验室", syl:"shíyànshì", zh:"laboratorium", ex:"实验室在三楼。", exSyl:"shíyànshì zài sān lóu", exZh:"Laboratorium ada di lantai tiga."},
+      /* Orang */
+      {id:"老师", syl:"lǎoshī", zh:"guru", ex:"老师很好。", exSyl:"lǎoshī hěn hǎo", exZh:"Gurunya sangat baik."},
+      {id:"学生", syl:"xuésheng", zh:"siswa", ex:"学生很努力。", exSyl:"xuésheng hěn nǔlì", exZh:"Siswanya sangat rajin."},
+      {id:"同学", syl:"tóngxué", zh:"teman sekelas", ex:"他是我的同学。", exSyl:"tā shì wǒ de tóngxué", exZh:"Dia teman sekelas saya."},
+      {id:"校长", syl:"xiàozhǎng", zh:"kepala sekolah", ex:"校长在办公室。", exSyl:"xiàozhǎng zài bàngōngshì", exZh:"Kepala sekolah ada di kantor."},
+      {id:"教授", syl:"jiàoshòu", zh:"profesor", ex:"他是大学教授。", exSyl:"tā shì dàxué jiàoshòu", exZh:"Dia profesor universitas."},
+      {id:"班主任", syl:"bānzhǔrèn", zh:"wali kelas", ex:"班主任来了。", exSyl:"bānzhǔrèn lái le", exZh:"Wali kelas datang."},
+      {id:"校医", syl:"xiàoyī", zh:"dokter sekolah", ex:"校医在医务室。", exSyl:"xiàoyī zài yīwùshì", exZh:"Dokter sekolah ada di klinik."},
+      /* Peralatan */
+      {id:"课本", syl:"kèběn", zh:"buku pelajaran", ex:"这是我的课本。", exSyl:"zhè shì wǒ de kèběn", exZh:"Ini buku pelajaran saya."},
+      {id:"笔", syl:"bǐ", zh:"pena", ex:"借我一支笔。", exSyl:"jiè wǒ yì zhī bǐ", exZh:"Pinjam saya satu pena."},
+      {id:"铅笔", syl:"qiānbǐ", zh:"pensil", ex:"我需要铅笔。", exSyl:"wǒ xūyào qiānbǐ", exZh:"Saya butuh pensil."},
+      {id:"橡皮", syl:"xiàngpí", zh:"penghapus", ex:"借一下橡皮。", exSyl:"jiè yíxià xiàngpí", exZh:"Pinjam penghapusnya."},
+      {id:"尺子", syl:"chǐzi", zh:"penggaris", ex:"尺子在书包里。", exSyl:"chǐzi zài shūbāo lǐ", exZh:"Penggarisnya ada di dalam tas."},
+      {id:"书包", syl:"shūbāo", zh:"tas sekolah", ex:"我的书包很重。", exSyl:"wǒ de shūbāo hěn zhòng", exZh:"Tas sekolah saya berat."},
+      {id:"黑板", syl:"hēibǎn", zh:"papan tulis", ex:"请看黑板。", exSyl:"qǐng kàn hēibǎn", exZh:"Lihat papan tulis."},
+      {id:"白板", syl:"báibǎn", zh:"papan putih", ex:"老师在白板上写字。", exSyl:"lǎoshī zài báibǎn shàng xiězì", exZh:"Guru menulis di papan putih."},
+      {id:"粉笔", syl:"fěnbǐ", zh:"kapur", ex:"粉笔在桌子上。", exSyl:"fěnbǐ zài zhuōzi shàng", exZh:"Kapur ada di atas meja."},
+      {id:"投影仪", syl:"tóuyǐngyí", zh:"proyektor", ex:"投影仪坏了。", exSyl:"tóuyǐngyí huài le", exZh:"Proyektornya rusak."},
+      /* Aktivitas */
+      {id:"上课", syl:"shàngkè", zh:"mengikuti pelajaran", ex:"我们八点上课。", exSyl:"wǒmen bā diǎn shàngkè", exZh:"Kami mulai pelajaran jam delapan."},
+      {id:"下课", syl:"xiàkè", zh:"selesai pelajaran", ex:"下课了！", exSyl:"xiàkè le", exZh:"Pelajaran selesai!"},
+      {id:"学习", syl:"xuéxí", zh:"belajar", ex:"我学习汉语。", exSyl:"wǒ xuéxí Hànyǔ", exZh:"Saya belajar bahasa Mandarin."},
+      {id:"读书", syl:"dúshū", zh:"membaca/belajar", ex:"他在读书。", exSyl:"tā zài dúshū", exZh:"Dia sedang membaca buku."},
+      {id:"写字", syl:"xiězì", zh:"menulis", ex:"我在写字。", exSyl:"wǒ zài xiězì", exZh:"Saya sedang menulis."},
+      {id:"听", syl:"tīng", zh:"mendengar", ex:"请听我说。", exSyl:"qǐng tīng wǒ shuō", exZh:"Dengarkan saya."},
+      {id:"说", syl:"shuō", zh:"berbicara", ex:"请说慢一点。", exSyl:"qǐng shuō màn yìdiǎn", exZh:"Tolong bicara lebih pelan."},
+      {id:"看", syl:"kàn", zh:"melihat/membaca", ex:"看这本书。", exSyl:"kàn zhè běn shū", exZh:"Lihat buku ini."},
+      {id:"问", syl:"wèn", zh:"bertanya", ex:"我可以问吗？", exSyl:"wǒ kěyǐ wèn ma", exZh:"Boleh saya bertanya?"},
+      {id:"回答", syl:"huídá", zh:"menjawab", ex:"请回答问题。", exSyl:"qǐng huídá wèntí", exZh:"Tolong jawab pertanyaannya."},
+      {id:"考试", syl:"kǎoshì", zh:"ujian", ex:"明天有考试。", exSyl:"míngtiān yǒu kǎoshì", exZh:"Besok ada ujian."},
+      {id:"做作业", syl:"zuò zuòyè", zh:"mengerjakan PR", ex:"我在做作业。", exSyl:"wǒ zài zuò zuòyè", exZh:"Saya sedang mengerjakan PR."},
+      {id:"交作业", syl:"jiāo zuòyè", zh:"mengumpulkan tugas", ex:"请交作业。", exSyl:"qǐng jiāo zuòyè", exZh:"Tolong kumpulkan tugas."},
+      {id:"迟到", syl:"chídào", zh:"terlambat", ex:"对不起，我迟到了。", exSyl:"duìbuqǐ, wǒ chídào le", exZh:"Maaf, saya terlambat."},
+      {id:"请假", syl:"qǐngjià", zh:"meminta izin", ex:"我要请假。", exSyl:"wǒ yào qǐngjià", exZh:"Saya mau minta izin."},
+      {id:"举手", syl:"jǔshǒu", zh:"mengangkat tangan", ex:"请举手。", exSyl:"qǐng jǔshǒu", exZh:"Tolong angkat tangan."},
+      /* Kalimat guru */
+      {id:"请坐。", syl:"qǐng zuò", zh:"Silakan duduk.", ex:"请坐，同学们。", exSyl:"qǐng zuò, tóngxuémen", exZh:"Silakan duduk, teman-teman."},
+      {id:"请站起来。", syl:"qǐng zhàn qǐlái", zh:"Silakan berdiri.", ex:"请站起来回答问题。", exSyl:"qǐng zhàn qǐlái huídá wèntí", exZh:"Silakan berdiri menjawab pertanyaan."},
+      {id:"请打开书。", syl:"qǐng dǎkāi shū", zh:"Silakan buka buku.", ex:"请打开书，翻到第十页。", exSyl:"qǐng dǎkāi shū, fān dào dì shí yè", exZh:"Buka buku, halaman sepuluh."},
+      {id:"请听我说。", syl:"qǐng tīng wǒ shuō", zh:"Dengarkan saya.", ex:"安静，请听我说。", exSyl:"ānjìng, qǐng tīng wǒ shuō", exZh:"Tenang, dengarkan saya."},
+      {id:"请跟我读。", syl:"qǐng gēn wǒ dú", zh:"Ikuti saya membaca.", ex:"请跟我读这个词。", exSyl:"qǐng gēn wǒ dú zhège cí", exZh:"Ikuti saya membaca kata ini."},
+      {id:"再说一遍。", syl:"zài shuō yí biàn", zh:"Katakan sekali lagi.", ex:"请再说一遍，我没听清。", exSyl:"qǐng zài shuō yí biàn, wǒ méi tīng qīng", exZh:"Tolong ulangi, saya tidak dengar jelas."},
+      {id:"很好！", syl:"hěn hǎo", zh:"Sangat bagus!", ex:"很好！你答对了。", exSyl:"hěn hǎo, nǐ dá duì le", exZh:"Bagus! Jawabanmu benar."},
+      {id:"你真棒！", syl:"nǐ zhēn bàng", zh:"Kamu hebat!", ex:"你真棒！继续保持。", exSyl:"nǐ zhēn bàng, jìxù bǎochí", exZh:"Kamu hebat! Pertahankan."},
+      {id:"安静一点。", syl:"ānjìng yìdiǎn", zh:"Tolong sedikit lebih tenang.", ex:"请大家安静一点。", exSyl:"qǐng dàjiā ānjìng yìdiǎn", exZh:"Tolong semua lebih tenang."}
+    ],
+
+    "中文：交通 🚗": [
+      {id:"路", syl:"lù", zh:"jalan", ex:"这条路很长。", exSyl:"zhè tiáo lù hěn cháng", exZh:"Jalan ini panjang."},
+      {id:"马路", syl:"mǎlù", zh:"jalan raya", ex:"过马路要小心。", exSyl:"guò mǎlù yào xiǎoxīn", exZh:"Menyeberang jalan harus hati-hati."},
+      {id:"十字路口", syl:"shízì lùkǒu", zh:"persimpangan", ex:"在前面的十字路口左转。", exSyl:"zài qiánmiàn de shízì lùkǒu zuǒ zhuǎn", exZh:"Belok kiri di persimpangan depan."},
+      {id:"红绿灯", syl:"hónglǜdēng", zh:"lampu lalu lintas", ex:"等红绿灯。", exSyl:"děng hónglǜdēng", exZh:"Tunggu lampu lalu lintas."},
+      {id:"车站", syl:"chēzhàn", zh:"stasiun/halte", ex:"车站在哪里？", exSyl:"chēzhàn zài nǎlǐ", exZh:"Stasiunnya di mana?"},
+      {id:"公交车站", syl:"gōngjiāo chēzhàn", zh:"halte bus", ex:"公交车站就在前面。", exSyl:"gōngjiāo chēzhàn jiù zài qiánmiàn", exZh:"Halte bus tepat di depan."},
+      {id:"火车站", syl:"huǒchēzhàn", zh:"stasiun kereta", ex:"我去火车站。", exSyl:"wǒ qù huǒchēzhàn", exZh:"Saya pergi ke stasiun kereta."},
+      {id:"机场", syl:"jīchǎng", zh:"bandara", ex:"机场离这里很远。", exSyl:"jīchǎng lí zhèlǐ hěn yuǎn", exZh:"Bandara jauh dari sini."},
+      {id:"出租车", syl:"chūzūchē", zh:"taksi", ex:"我们坐出租车吧。", exSyl:"wǒmen zuò chūzūchē ba", exZh:"Kita naik taksi saja."},
+      {id:"汽车", syl:"qìchē", zh:"mobil", ex:"这是我的汽车。", exSyl:"zhè shì wǒ de qìchē", exZh:"Ini mobil saya."},
+      {id:"公共汽车", syl:"gōnggòng qìchē", zh:"bus", ex:"坐公共汽车去。", exSyl:"zuò gōnggòng qìchē qù", exZh:"Pergi naik bus."},
+      {id:"火车", syl:"huǒchē", zh:"kereta", ex:"火车几点开？", exSyl:"huǒchē jǐ diǎn kāi", exZh:"Kereta berangkat jam berapa?"},
+      {id:"摩托车", syl:"mótuōchē", zh:"sepeda motor", ex:"他骑摩托车。", exSyl:"tā qí mótuōchē", exZh:"Dia naik sepeda motor."},
+      {id:"自行车", syl:"zìxíngchē", zh:"sepeda", ex:"我骑自行车上班。", exSyl:"wǒ qí zìxíngchē shàngbān", exZh:"Saya naik sepeda ke kantor."},
+      {id:"地铁", syl:"dìtiě", zh:"MRT/kereta bawah tanah", ex:"坐地铁很快。", exSyl:"zuò dìtiě hěn kuài", exZh:"Naik MRT cepat."},
+      /* Arah */
+      {id:"左边", syl:"zuǒbian", zh:"sebelah kiri", ex:"银行在左边。", exSyl:"yínháng zài zuǒbian", exZh:"Bank di sebelah kiri."},
+      {id:"右边", syl:"yòubian", zh:"sebelah kanan", ex:"超市在右边。", exSyl:"chāoshì zài yòubian", exZh:"Supermarket di sebelah kanan."},
+      {id:"前面", syl:"qiánmiàn", zh:"depan", ex:"他在前面。", exSyl:"tā zài qiánmiàn", exZh:"Dia di depan."},
+      {id:"后面", syl:"hòumiàn", zh:"belakang", ex:"停车在后面。", exSyl:"tíngchē zài hòumiàn", exZh:"Parkir di belakang."},
+      {id:"里面", syl:"lǐmiàn", zh:"di dalam", ex:"在教室里面。", exSyl:"zài jiàoshì lǐmiàn", exZh:"Di dalam kelas."},
+      {id:"外面", syl:"wàimiàn", zh:"di luar", ex:"在外面等我。", exSyl:"zài wàimiàn děng wǒ", exZh:"Tunggu saya di luar."},
+      {id:"上面", syl:"shàngmiàn", zh:"di atas", ex:"书在桌子上面。", exSyl:"shū zài zhuōzi shàngmiàn", exZh:"Buku di atas meja."},
+      {id:"下面", syl:"xiàmiàn", zh:"di bawah", ex:"在椅子下面。", exSyl:"zài yǐzi xiàmiàn", exZh:"Di bawah kursi."},
+      {id:"这里", syl:"zhèlǐ", zh:"di sini", ex:"请在这里停车。", exSyl:"qǐng zài zhèlǐ tíngchē", exZh:"Tolong berhenti di sini."},
+      {id:"那里", syl:"nàlǐ", zh:"di sana", ex:"在那里等我。", exSyl:"zài nàlǐ děng wǒ", exZh:"Tunggu saya di sana."},
+      {id:"直走", syl:"zhí zǒu", zh:"jalan lurus", ex:"一直走。", exSyl:"yìzhí zǒu", exZh:"Jalan terus."},
+      {id:"左转", syl:"zuǒ zhuǎn", zh:"belok kiri", ex:"前面左转。", exSyl:"qiánmiàn zuǒ zhuǎn", exZh:"Belok kiri di depan."},
+      {id:"右转", syl:"yòu zhuǎn", zh:"belok kanan", ex:"到路口右转。", exSyl:"dào lùkǒu yòu zhuǎn", exZh:"Di persimpangan belok kanan."},
+      {id:"停", syl:"tíng", zh:"berhenti", ex:"请停在这里。", exSyl:"qǐng tíng zài zhèlǐ", exZh:"Tolong berhenti di sini."},
+      /* Kalimat */
+      {id:"去哪里？", syl:"qù nǎlǐ", zh:"Pergi ke mana?", ex:"你要去哪里？", exSyl:"nǐ yào qù nǎlǐ", exZh:"Kamu mau pergi ke mana?"},
+      {id:"怎么走？", syl:"zěnme zǒu", zh:"Bagaimana jalannya?", ex:"请问，怎么走？", exSyl:"qǐngwèn, zěnme zǒu", exZh:"Permisi, bagaimana jalannya?"},
+      {id:"远吗？", syl:"yuǎn ma", zh:"Apakah jauh?", ex:"从这里到机场远吗？", exSyl:"cóng zhèlǐ dào jīchǎng yuǎn ma", exZh:"Dari sini ke bandara jauh?"},
+      {id:"近吗？", syl:"jìn ma", zh:"Apakah dekat?", ex:"车站近吗？", exSyl:"chēzhàn jìn ma", exZh:"Stasiunnya dekat?"},
+      {id:"请在这里停车。", syl:"qǐng zài zhèlǐ tíngchē", zh:"Tolong berhenti di sini.", ex:"师傅，请在这里停车。", exSyl:"shīfu, qǐng zài zhèlǐ tíngchē", exZh:"Pak, tolong berhenti di sini."},
+      {id:"请带我去机场。", syl:"qǐng dài wǒ qù jīchǎng", zh:"Tolong antar saya ke bandara.", ex:"师傅，请带我去机场。", exSyl:"shīfu, qǐng dài wǒ qù jīchǎng", exZh:"Pak, antar saya ke bandara."}
+    ],
+
+    "中文：购物 🛍️": [
+      {id:"商场", syl:"shāngchǎng", zh:"pusat perbelanjaan", ex:"我们去商场吧。", exSyl:"wǒmen qù shāngchǎng ba", exZh:"Kita ke mall saja."},
+      {id:"商店", syl:"shāngdiàn", zh:"toko", ex:"那家商店很便宜。", exSyl:"nà jiā shāngdiàn hěn piányi", exZh:"Toko itu murah."},
+      {id:"超市", syl:"chāoshì", zh:"supermarket", ex:"我去超市买菜。", exSyl:"wǒ qù chāoshì mǎi cài", exZh:"Saya ke supermarket beli sayur."},
+      {id:"商品", syl:"shāngpǐn", zh:"barang/produk", ex:"这里的商品很多。", exSyl:"zhèlǐ de shāngpǐn hěn duō", exZh:"Barangnya banyak di sini."},
+      {id:"东西", syl:"dōngxi", zh:"barang", ex:"我要买东西。", exSyl:"wǒ yào mǎi dōngxi", exZh:"Saya mau beli barang."},
+      {id:"裤子", syl:"kùzi", zh:"celana", ex:"这条裤子很合适。", exSyl:"zhè tiáo kùzi hěn héshì", exZh:"Celana ini pas."},
+      {id:"裙子", syl:"qúnzi", zh:"rok", ex:"我喜欢这条裙子。", exSyl:"wǒ xǐhuan zhè tiáo qúnzi", exZh:"Saya suka rok ini."},
+      {id:"鞋子", syl:"xiézi", zh:"sepatu", ex:"这双鞋子有点小。", exSyl:"zhè shuāng xiézi yǒudiǎn xiǎo", exZh:"Sepatu ini agak kecil."},
+      {id:"包", syl:"bāo", zh:"tas", ex:"这个包多少钱？", exSyl:"zhège bāo duōshao qián", exZh:"Tas ini berapa harganya?"},
+      {id:"礼物", syl:"lǐwù", zh:"hadiah", ex:"我买礼物给妈妈。", exSyl:"wǒ mǎi lǐwù gěi māma", exZh:"Saya beli hadiah untuk ibu."},
+      {id:"价格", syl:"jiàgé", zh:"harga", ex:"价格太贵了。", exSyl:"jiàgé tài guì le", exZh:"Harganya terlalu mahal."},
+      {id:"钱", syl:"qián", zh:"uang", ex:"我没有钱了。", exSyl:"wǒ méiyǒu qián le", exZh:"Saya tidak punya uang lagi."},
+      {id:"现金", syl:"xiànjīn", zh:"uang tunai", ex:"可以用现金吗？", exSyl:"kěyǐ yòng xiànjīn ma", exZh:"Bisa pakai uang tunai?"},
+      {id:"信用卡", syl:"xìnyòngkǎ", zh:"kartu kredit", ex:"我刷信用卡。", exSyl:"wǒ shuā xìnyòngkǎ", exZh:"Saya bayar dengan kartu kredit."},
+      {id:"收银员", syl:"shōuyínyuán", zh:"kasir", ex:"收银员在那里。", exSyl:"shōuyínyuán zài nàlǐ", exZh:"Kasirnya di sana."},
+      {id:"收银台", syl:"shōuyíntái", zh:"meja kasir", ex:"收银台在门口。", exSyl:"shōuyíntái zài ménkǒu", exZh:"Meja kasir di pintu masuk."},
+      {id:"发票", syl:"fāpiào", zh:"faktur/nota", ex:"请给我发票。", exSyl:"qǐng gěi wǒ fāpiào", exZh:"Tolong berikan saya notanya."},
+      {id:"打折", syl:"dǎzhé", zh:"diskon", ex:"这件衣服打折吗？", exSyl:"zhè jiàn yīfu dǎzhé ma", exZh:"Pakaian ini diskon?"},
+      {id:"便宜", syl:"piányi", zh:"murah", ex:"这里很便宜。", exSyl:"zhèlǐ hěn piányi", exZh:"Di sini murah."},
+      {id:"贵", syl:"guì", zh:"mahal", ex:"太贵了！", exSyl:"tài guì le", exZh:"Terlalu mahal!"},
+      /* Kalimat */
+      {id:"多少钱？", syl:"duōshao qián", zh:"Berapa harganya?", ex:"这个多少钱？", exSyl:"zhège duōshao qián", exZh:"Ini berapa harganya?"},
+      {id:"太贵了。", syl:"tài guì le", zh:"Terlalu mahal.", ex:"太贵了，便宜一点吧。", exSyl:"tài guì le, piányi yìdiǎn ba", exZh:"Terlalu mahal, lebih murah sedikit."},
+      {id:"可以便宜一点吗？", syl:"kěyǐ piányi yìdiǎn ma", zh:"Bisa lebih murah sedikit?", ex:"老板，可以便宜一点吗？", exSyl:"lǎobǎn, kěyǐ piányi yìdiǎn ma", exZh:"Bos, bisa lebih murah?"},
+      {id:"有别的颜色吗？", syl:"yǒu bié de yánsè ma", zh:"Ada warna lain?", ex:"这件有别的颜色吗？", exSyl:"zhè jiàn yǒu bié de yánsè ma", exZh:"Yang ini ada warna lain?"},
+      {id:"有大一点的吗？", syl:"yǒu dà yìdiǎn de ma", zh:"Ada yang lebih besar?", ex:"有大一点的尺码吗？", exSyl:"yǒu dà yìdiǎn de chǐmǎ ma", exZh:"Ada ukuran lebih besar?"},
+      {id:"有小一点的吗？", syl:"yǒu xiǎo yìdiǎn de ma", zh:"Ada yang lebih kecil?", ex:"有小一点的包吗？", exSyl:"yǒu xiǎo yìdiǎn de bāo ma", exZh:"Ada tas yang lebih kecil?"},
+      {id:"我想试一下。", syl:"wǒ xiǎng shì yíxià", zh:"Saya ingin mencoba.", ex:"我想试一下这个。", exSyl:"wǒ xiǎng shì yíxià zhège", exZh:"Saya mau coba yang ini."},
+      {id:"可以试穿吗？", syl:"kěyǐ shìchuān ma", zh:"Boleh mencoba pakaian?", ex:"这条裤子可以试穿吗？", exSyl:"zhè tiáo kùzi kěyǐ shìchuān ma", exZh:"Celana ini boleh dicoba?"},
+      {id:"我要这个。", syl:"wǒ yào zhège", zh:"Saya mau yang ini.", ex:"好，我要这个。", exSyl:"hǎo, wǒ yào zhège", exZh:"Oke, saya mau yang ini."},
+      {id:"不要了，谢谢。", syl:"bú yào le, xièxie", zh:"Tidak jadi, terima kasih.", ex:"算了，不要了，谢谢。", exSyl:"suàn le, bú yào le, xièxie", exZh:"Sudahlah, tidak jadi, terima kasih."}
+    ],
+
+    "中文：机场 ✈️": [
+      {id:"飞机", syl:"fēijī", zh:"pesawat", ex:"飞机几点起飞？", exSyl:"fēijī jǐ diǎn qǐfēi", exZh:"Pesawat berangkat jam berapa?"},
+      {id:"航班", syl:"hángbān", zh:"penerbangan", ex:"我的航班晚点了。", exSyl:"wǒ de hángbān wǎndiǎn le", exZh:"Penerbangan saya tertunda."},
+      {id:"机票", syl:"jīpiào", zh:"tiket pesawat", ex:"我买了一张机票。", exSyl:"wǒ mǎi le yì zhāng jīpiào", exZh:"Saya beli satu tiket pesawat."},
+      {id:"护照", syl:"hùzhào", zh:"paspor", ex:"请出示护照。", exSyl:"qǐng chūshì hùzhào", exZh:"Tolong tunjukkan paspor."},
+      {id:"签证", syl:"qiānzhèng", zh:"visa", ex:"我的签证在这里。", exSyl:"wǒ de qiānzhèng zài zhèlǐ", exZh:"Visa saya ada di sini."},
+      {id:"登机牌", syl:"dēngjīpái", zh:"boarding pass", ex:"这是您的登机牌。", exSyl:"zhè shì nín de dēngjīpái", exZh:"Ini boarding pass Anda."},
+      {id:"行李", syl:"xíngli", zh:"bagasi", ex:"我的行李很重。", exSyl:"wǒ de xíngli hěn zhòng", exZh:"Bagasi saya berat."},
+      {id:"行李箱", syl:"xínglixiāng", zh:"koper", ex:"行李箱在哪里？", exSyl:"xínglixiāng zài nǎlǐ", exZh:"Kopernya di mana?"},
+      {id:"手提行李", syl:"shǒutí xíngli", zh:"bagasi kabin", ex:"这是我的手提行李。", exSyl:"zhè shì wǒ de shǒutí xíngli", exZh:"Ini bagasi kabin saya."},
+      {id:"托运行李", syl:"tuōyùn xíngli", zh:"bagasi check-in", ex:"我要托运行李。", exSyl:"wǒ yào tuōyùn xíngli", exZh:"Saya mau check-in bagasi."},
+      {id:"安检", syl:"ānjiǎn", zh:"pemeriksaan keamanan", ex:"请过安检。", exSyl:"qǐng guò ānjiǎn", exZh:"Silakan lewat pemeriksaan keamanan."},
+      {id:"海关", syl:"hǎiguān", zh:"bea cukai", ex:"海关在那边。", exSyl:"hǎiguān zài nàbiān", exZh:"Bea cukai di sebelah sana."},
+      {id:"出境", syl:"chūjìng", zh:"keluar negara", ex:"办理出境手续。", exSyl:"bànlǐ chūjìng shǒuxù", exZh:"Urus prosedur keluar negara."},
+      {id:"入境", syl:"rùjìng", zh:"masuk negara", ex:"入境卡在哪里拿？", exSyl:"rùjìng kǎ zài nǎlǐ ná", exZh:"Kartu masuk negara ambil di mana?"},
+      {id:"登机口", syl:"dēngjīkǒu", zh:"gerbang keberangkatan", ex:"登机口在哪里？", exSyl:"dēngjīkǒu zài nǎlǐ", exZh:"Gerbang keberangkatan di mana?"},
+      {id:"到达", syl:"dàodá", zh:"kedatangan", ex:"到达时间是几点？", exSyl:"dàodá shíjiān shì jǐ diǎn", exZh:"Waktu kedatangan jam berapa?"},
+      {id:"出发", syl:"chūfā", zh:"keberangkatan", ex:"出发时间是八点。", exSyl:"chūfā shíjiān shì bā diǎn", exZh:"Waktu keberangkatan jam delapan."},
+      {id:"延误", syl:"yánwù", zh:"tertunda", ex:"航班延误了。", exSyl:"hángbān yánwù le", exZh:"Penerbangannya tertunda."},
+      {id:"起飞", syl:"qǐfēi", zh:"lepas landas", ex:"飞机起飞了。", exSyl:"fēijī qǐfēi le", exZh:"Pesawat sudah lepas landas."},
+      {id:"降落", syl:"jiàngluò", zh:"mendarat", ex:"飞机降落了。", exSyl:"fēijī jiàngluò le", exZh:"Pesawat sudah mendarat."},
+      {id:"登机口在哪里？", syl:"dēngjīkǒu zài nǎlǐ", zh:"Di mana gerbang keberangkatan?", ex:"请问，登机口在哪里？", exSyl:"qǐngwèn, dēngjīkǒu zài nǎlǐ", exZh:"Permisi, di mana gerbang keberangkatan?"},
+      {id:"我的航班几点？", syl:"wǒ de hángbān jǐ diǎn", zh:"Penerbangan saya jam berapa?", ex:"请问，我的航班几点？", exSyl:"qǐngwèn, wǒ de hángbān jǐ diǎn", exZh:"Permisi, penerbangan saya jam berapa?"},
+      {id:"飞机晚点了吗？", syl:"fēijī wǎndiǎn le ma", zh:"Apakah pesawat terlambat?", ex:"请问，飞机晚点了吗？", exSyl:"qǐngwèn, fēijī wǎndiǎn le ma", exZh:"Permisi, pesawatnya terlambat?"},
+      {id:"行李在哪里取？", syl:"xíngli zài nǎlǐ qǔ", zh:"Di mana mengambil bagasi?", ex:"请问，行李在哪里取？", exSyl:"qǐngwèn, xíngli zài nǎlǐ qǔ", exZh:"Permisi, bagasi diambil di mana?"},
+      {id:"我要办理登机手续。", syl:"wǒ yào bànlǐ dēngjī shǒuxù", zh:"Saya ingin check-in.", ex:"你好，我要办理登机手续。", exSyl:"nǐ hǎo, wǒ yào bànlǐ dēngjī shǒuxù", exZh:"Halo, saya mau check-in."}
+    ],
+
+    "中文：酒店 🏨": [
+      {id:"酒店", syl:"jiǔdiàn", zh:"hotel", ex:"这家酒店很好。", exSyl:"zhè jiā jiǔdiàn hěn hǎo", exZh:"Hotel ini bagus."},
+      {id:"前台", syl:"qiántái", zh:"resepsionis", ex:"前台在那边。", exSyl:"qiántái zài nàbiān", exZh:"Resepsionis di sana."},
+      {id:"服务员", syl:"fúwùyuán", zh:"petugas", ex:"服务员很客气。", exSyl:"fúwùyuán hěn kèqi", exZh:"Petugasnya sangat sopan."},
+      {id:"房卡", syl:"fángkǎ", zh:"kartu kamar", ex:"这是我的房卡。", exSyl:"zhè shì wǒ de fángkǎ", exZh:"Ini kartu kamar saya."},
+      {id:"单人房", syl:"dānrén fáng", zh:"kamar single", ex:"我要一个单人房。", exSyl:"wǒ yào yí gè dānrén fáng", exZh:"Saya mau satu kamar single."},
+      {id:"双人房", syl:"shuāngrén fáng", zh:"kamar double", ex:"订一个双人房。", exSyl:"dìng yí gè shuāngrén fáng", exZh:"Pesan satu kamar double."},
+      {id:"早餐", syl:"zǎocān", zh:"sarapan", ex:"早餐几点开始？", exSyl:"zǎocān jǐ diǎn kāishǐ", exZh:"Sarapan mulai jam berapa?"},
+      {id:"电梯", syl:"diàntī", zh:"lift", ex:"电梯在左边。", exSyl:"diàntī zài zuǒbian", exZh:"Lift di sebelah kiri."},
+      {id:"楼", syl:"lóu", zh:"lantai", ex:"我住在三楼。", exSyl:"wǒ zhù zài sān lóu", exZh:"Saya tinggal di lantai tiga."},
+      {id:"热水", syl:"rèshuǐ", zh:"air panas", ex:"有热水吗？", exSyl:"yǒu rèshuǐ ma", exZh:"Ada air panas?"},
+      {id:"冷水", syl:"lěngshuǐ", zh:"air dingin", ex:"我要一杯冷水。", exSyl:"wǒ yào yì bēi lěngshuǐ", exZh:"Saya mau satu gelas air dingin."},
+      {id:"无线网络", syl:"wúxiàn wǎngluò", zh:"Wi-Fi", ex:"无线网络密码是多少？", exSyl:"wúxiàn wǎngluò mìmǎ shì duōshao", exZh:"Password Wi-Fi-nya berapa?"},
+      {id:"预订", syl:"yùdìng", zh:"reservasi", ex:"我有预订。", exSyl:"wǒ yǒu yùdìng", exZh:"Saya ada reservasi."},
+      {id:"入住", syl:"rùzhù", zh:"check-in", ex:"我要办理入住。", exSyl:"wǒ yào bànlǐ rùzhù", exZh:"Saya mau check-in."},
+      {id:"退房", syl:"tuìfáng", zh:"check-out", ex:"我想退房。", exSyl:"wǒ xiǎng tuìfáng", exZh:"Saya mau check-out."},
+      {id:"我有预订。", syl:"wǒ yǒu yùdìng", zh:"Saya sudah reservasi.", ex:"你好，我有预订。", exSyl:"nǐ hǎo, wǒ yǒu yùdìng", exZh:"Halo, saya sudah reservasi."},
+      {id:"我要办理入住。", syl:"wǒ yào bànlǐ rùzhù", zh:"Saya ingin check-in.", ex:"你好，我要办理入住。", exSyl:"nǐ hǎo, wǒ yào bànlǐ rùzhù", exZh:"Halo, saya mau check-in."},
+      {id:"房间在哪里？", syl:"fángjiān zài nǎlǐ", zh:"Di mana kamar saya?", ex:"请问，房间在哪里？", exSyl:"qǐngwèn, fángjiān zài nǎlǐ", exZh:"Permisi, kamar saya di mana?"},
+      {id:"Wi-Fi密码是多少？", syl:"wúxiàn wǎngluò mìmǎ shì duōshao", zh:"Berapa password Wi-Fi?", ex:"请问，Wi-Fi密码是多少？", exSyl:"qǐngwèn, wúxiàn wǎngluò mìmǎ shì duōshao", exZh:"Permisi, password Wi-Fi berapa?"},
+      {id:"早餐几点开始？", syl:"zǎocān jǐ diǎn kāishǐ", zh:"Sarapan mulai jam berapa?", ex:"请问，早餐几点开始？", exSyl:"qǐngwèn, zǎocān jǐ diǎn kāishǐ", exZh:"Permisi, sarapan mulai jam berapa?"},
+      {id:"可以帮我吗？", syl:"kěyǐ bāng wǒ ma", zh:"Bisa membantu saya?", ex:"你好，可以帮我吗？", exSyl:"nǐ hǎo, kěyǐ bāng wǒ ma", exZh:"Halo, bisa bantu saya?"},
+      {id:"我想退房。", syl:"wǒ xiǎng tuìfáng", zh:"Saya ingin check-out.", ex:"你好，我想退房。", exSyl:"nǐ hǎo, wǒ xiǎng tuìfáng", exZh:"Halo, saya mau check-out."}
+    ],
+
+    "中文：餐厅 🍜": [
+      {id:"餐厅", syl:"cāntīng", zh:"restoran", ex:"这家餐厅很好吃。", exSyl:"zhè jiā cāntīng hěn hǎochī", exZh:"Restoran ini enak."},
+      {id:"饭店", syl:"fàndiàn", zh:"rumah makan", ex:"我们去饭店吃饭。", exSyl:"wǒmen qù fàndiàn chīfàn", exZh:"Kita pergi makan di restoran."},
+      {id:"菜单", syl:"càidān", zh:"menu", ex:"请给我菜单。", exSyl:"qǐng gěi wǒ càidān", exZh:"Tolong berikan saya menu."},
+      {id:"菜", syl:"cài", zh:"masakan", ex:"这道菜很好吃。", exSyl:"zhè dào cài hěn hǎochī", exZh:"Masakan ini enak."},
+      {id:"米饭", syl:"mǐfàn", zh:"nasi", ex:"我要一碗米饭。", exSyl:"wǒ yào yì wǎn mǐfàn", exZh:"Saya mau satu mangkuk nasi."},
+      {id:"面条", syl:"miàntiáo", zh:"mi", ex:"我喜欢吃面条。", exSyl:"wǒ xǐhuan chī miàntiáo", exZh:"Saya suka makan mi."},
+      {id:"饺子", syl:"jiǎozi", zh:"pangsit/dumpling", ex:"这家的饺子很好吃。", exSyl:"zhè jiā de jiǎozi hěn hǎochī", exZh:"Dumpling di sini enak."},
+      {id:"包子", syl:"bāozi", zh:"bakpao", ex:"我要两个包子。", exSyl:"wǒ yào liǎng gè bāozi", exZh:"Saya mau dua bakpao."},
+      {id:"鸡肉", syl:"jīròu", zh:"daging ayam", ex:"我不吃鸡肉。", exSyl:"wǒ bù chī jīròu", exZh:"Saya tidak makan ayam."},
+      {id:"牛肉", syl:"niúròu", zh:"daging sapi", ex:"牛肉面多少钱？", exSyl:"niúròu miàn duōshao qián", exZh:"Mi daging sapi berapa?"},
+      {id:"猪肉", syl:"zhūròu", zh:"daging babi", ex:"我不吃猪肉。", exSyl:"wǒ bù chī zhūròu", exZh:"Saya tidak makan babi."},
+      {id:"鱼", syl:"yú", zh:"ikan", ex:"我喜欢吃鱼。", exSyl:"wǒ xǐhuan chī yú", exZh:"Saya suka makan ikan."},
+      {id:"鸡蛋", syl:"jīdàn", zh:"telur", ex:"我要一个鸡蛋。", exSyl:"wǒ yào yí gè jīdàn", exZh:"Saya mau satu telur."},
+      {id:"蔬菜", syl:"shūcài", zh:"sayuran", ex:"多吃蔬菜。", exSyl:"duō chī shūcài", exZh:"Banyak makan sayur."},
+      {id:"水果", syl:"shuǐguǒ", zh:"buah", ex:"我喜欢吃水果。", exSyl:"wǒ xǐhuan chī shuǐguǒ", exZh:"Saya suka makan buah."},
+      {id:"水", syl:"shuǐ", zh:"air", ex:"请给我一杯水。", exSyl:"qǐng gěi wǒ yì bēi shuǐ", exZh:"Tolong beri saya segelas air."},
+      {id:"茶", syl:"chá", zh:"teh", ex:"我喜欢喝茶。", exSyl:"wǒ xǐhuan hē chá", exZh:"Saya suka minum teh."},
+      {id:"咖啡", syl:"kāfēi", zh:"kopi", ex:"我要一杯咖啡。", exSyl:"wǒ yào yì bēi kāfēi", exZh:"Saya mau satu gelas kopi."},
+      {id:"果汁", syl:"guǒzhī", zh:"jus", ex:"有果汁吗？", exSyl:"yǒu guǒzhī ma", exZh:"Ada jus?"},
+      {id:"啤酒", syl:"píjiǔ", zh:"bir", ex:"来一瓶啤酒。", exSyl:"lái yì píng píjiǔ", exZh:"Minta satu botol bir."},
+      {id:"筷子", syl:"kuàizi", zh:"sumpit", ex:"请给我筷子。", exSyl:"qǐng gěi wǒ kuàizi", exZh:"Tolong beri saya sumpit."},
+      {id:"勺子", syl:"sháozi", zh:"sendok", ex:"我需要一个勺子。", exSyl:"wǒ xūyào yí gè sháozi", exZh:"Saya butuh satu sendok."},
+      {id:"叉子", syl:"chāzi", zh:"garpu", ex:"请给我叉子。", exSyl:"qǐng gěi wǒ chāzi", exZh:"Tolong beri saya garpu."},
+      {id:"碗", syl:"wǎn", zh:"mangkuk", ex:"再来一碗。", exSyl:"zài lái yì wǎn", exZh:"Tambah satu mangkuk."},
+      {id:"盘子", syl:"pánzi", zh:"piring", ex:"盘子在这里。", exSyl:"pánzi zài zhèlǐ", exZh:"Piringnya di sini."},
+      {id:"杯子", syl:"bēizi", zh:"gelas", ex:"杯子是干净的。", exSyl:"bēizi shì gānjìng de", exZh:"Gelasnya bersih."},
+      {id:"账单", syl:"zhàngdān", zh:"tagihan", ex:"请给我账单。", exSyl:"qǐng gěi wǒ zhàngdān", exZh:"Tolong beri saya tagihannya."},
+      {id:"服务费", syl:"fúwùfèi", zh:"biaya layanan", ex:"要服务费吗？", exSyl:"yào fúwùfèi ma", exZh:"Ada biaya layanan?"},
+      /* Rasa */
+      {id:"好吃", syl:"hǎochī", zh:"enak", ex:"这个很好吃！", exSyl:"zhège hěn hǎochī", exZh:"Ini enak sekali!"},
+      {id:"好喝", syl:"hǎohē", zh:"enak diminum", ex:"这杯茶很好喝。", exSyl:"zhè bēi chá hěn hǎohē", exZh:"Teh ini enak."},
+      {id:"甜", syl:"tián", zh:"manis", ex:"太甜了。", exSyl:"tài tián le", exZh:"Terlalu manis."},
+      {id:"咸", syl:"xián", zh:"asin", ex:"有点咸。", exSyl:"yǒudiǎn xián", exZh:"Agak asin."},
+      {id:"酸", syl:"suān", zh:"asam", ex:"这个很酸。", exSyl:"zhège hěn suān", exZh:"Ini asam sekali."},
+      {id:"苦", syl:"kǔ", zh:"pahit", ex:"药很苦。", exSyl:"yào hěn kǔ", exZh:"Obatnya pahit."},
+      {id:"辣", syl:"là", zh:"pedas", ex:"太辣了！", exSyl:"tài là le", exZh:"Terlalu pedas!"},
+      {id:"淡", syl:"dàn", zh:"hambar", ex:"味道有点淡。", exSyl:"wèidào yǒudiǎn dàn", exZh:"Rasanya agak hambar."},
+      {id:"热", syl:"rè", zh:"panas", ex:"汤很热。", exSyl:"tāng hěn rè", exZh:"Supnya panas."},
+      {id:"冷", syl:"lěng", zh:"dingin", ex:"水太冷了。", exSyl:"shuǐ tài lěng le", exZh:"Airnya terlalu dingin."},
+      /* Kalimat */
+      {id:"请给我菜单。", syl:"qǐng gěi wǒ càidān", zh:"Tolong beri saya menu.", ex:"你好，请给我菜单。", exSyl:"nǐ hǎo, qǐng gěi wǒ càidān", exZh:"Halo, tolong beri saya menu."},
+      {id:"我要这个。", syl:"wǒ yào zhège", zh:"Saya mau ini.", ex:"服务员，我要这个。", exSyl:"fúwùyuán, wǒ yào zhège", exZh:"Pelayan, saya mau ini."},
+      {id:"有什么推荐？", syl:"yǒu shénme tuījiàn", zh:"Apa yang direkomendasikan?", ex:"请问，有什么推荐？", exSyl:"qǐngwèn, yǒu shénme tuījiàn", exZh:"Permisi, ada rekomendasi?"},
+      {id:"不要辣。", syl:"bú yào là", zh:"Jangan pedas.", ex:"这碗面不要辣。", exSyl:"zhè wǎn miàn bú yào là", exZh:"Mi ini jangan pedas."},
+      {id:"少放一点辣。", syl:"shǎo fàng yìdiǎn là", zh:"Tolong kurangi pedasnya.", ex:"师傅，少放一点辣。", exSyl:"shīfu, shǎo fàng yìdiǎn là", exZh:"Pak, kurangi pedasnya."},
+      {id:"不要放糖。", syl:"bú yào fàng táng", zh:"Jangan pakai gula.", ex:"我的咖啡不要放糖。", exSyl:"wǒ de kāfēi bú yào fàng táng", exZh:"Kopi saya jangan pakai gula."},
+      {id:"再来一杯水。", syl:"zài lái yì bēi shuǐ", zh:"Minta satu gelas air lagi.", ex:"服务员，再来一杯水。", exSyl:"fúwùyuán, zài lái yì bēi shuǐ", exZh:"Pelayan, minta segelas air lagi."},
+      {id:"买单，谢谢。", syl:"mǎidān, xièxie", zh:"Minta bill, terima kasih.", ex:"服务员，买单，谢谢。", exSyl:"fúwùyuán, mǎidān, xièxie", exZh:"Pelayan, minta bill, terima kasih."},
+      {id:"可以刷卡吗？", syl:"kěyǐ shuākǎ ma", zh:"Bisa bayar dengan kartu?", ex:"请问，可以刷卡吗？", exSyl:"qǐngwèn, kěyǐ shuākǎ ma", exZh:"Permisi, bisa bayar pakai kartu?"},
+      {id:"可以用现金吗？", syl:"kěyǐ yòng xiànjīn ma", zh:"Bisa bayar tunai?", ex:"请问，可以用现金吗？", exSyl:"qǐngwèn, kěyǐ yòng xiànjīn ma", exZh:"Permisi, bisa bayar tunai?"}
+    ],
+
+    "中文：常用 🗣️": [
+      {id:"你好", syl:"nǐ hǎo", zh:"halo", ex:"你好，很高兴认识你。", exSyl:"nǐ hǎo, hěn gāoxìng rènshi nǐ", exZh:"Halo, senang berkenalan."},
+      {id:"您好", syl:"nín hǎo", zh:"halo (sopan)", ex:"您好，欢迎光临。", exSyl:"nín hǎo, huānyíng guānglín", exZh:"Halo, selamat datang."},
+      {id:"谢谢", syl:"xièxie", zh:"terima kasih", ex:"谢谢你的帮助。", exSyl:"xièxie nǐ de bāngzhù", exZh:"Terima kasih atas bantuanmu."},
+      {id:"不客气", syl:"bú kèqi", zh:"sama-sama", ex:"不客气，这是我应该做的。", exSyl:"bú kèqi, zhè shì wǒ yīnggāi zuò de", exZh:"Sama-sama, ini kewajiban saya."},
+      {id:"对不起", syl:"duìbuqǐ", zh:"maaf", ex:"对不起，我迟到了。", exSyl:"duìbuqǐ, wǒ chídào le", exZh:"Maaf, saya terlambat."},
+      {id:"没关系", syl:"méi guānxi", zh:"tidak apa-apa", ex:"没关系，别担心。", exSyl:"méi guānxi, bié dānxīn", exZh:"Tidak apa-apa, jangan khawatir."},
+      {id:"不好意思", syl:"bù hǎoyìsi", zh:"permisi/maaf", ex:"不好意思，让一下。", exSyl:"bù hǎoyìsi, ràng yíxià", exZh:"Permisi, numpang lewat."},
+      {id:"请", syl:"qǐng", zh:"silakan/tolong", ex:"请进。", exSyl:"qǐng jìn", exZh:"Silakan masuk."},
+      {id:"请问", syl:"qǐngwèn", zh:"permisi, boleh bertanya", ex:"请问，洗手间在哪里？", exSyl:"qǐngwèn, xǐshǒujiān zài nǎlǐ", exZh:"Permisi, toilet di mana?"},
+      {id:"好", syl:"hǎo", zh:"baik/oke", ex:"好，没问题。", exSyl:"hǎo, méi wèntí", exZh:"Oke, tidak masalah."},
+      {id:"可以", syl:"kěyǐ", zh:"boleh/bisa", ex:"可以，当然可以。", exSyl:"kěyǐ, dāngrán kěyǐ", exZh:"Boleh, tentu saja boleh."},
+      {id:"不可以", syl:"bù kěyǐ", zh:"tidak boleh", ex:"这里不可以停车。", exSyl:"zhèlǐ bù kěyǐ tíngchē", exZh:"Di sini tidak boleh parkir."},
+      {id:"要", syl:"yào", zh:"mau/perlu", ex:"我要一杯茶。", exSyl:"wǒ yào yì bēi chá", exZh:"Saya mau satu gelas teh."},
+      {id:"不要", syl:"bú yào", zh:"tidak mau/jangan", ex:"不要，谢谢。", exSyl:"bú yào, xièxie", exZh:"Tidak, terima kasih."},
+      {id:"有", syl:"yǒu", zh:"ada", ex:"有洗手间吗？", exSyl:"yǒu xǐshǒujiān ma", exZh:"Ada toilet?"},
+      {id:"没有", syl:"méiyǒu", zh:"tidak ada", ex:"对不起，没有。", exSyl:"duìbuqǐ, méiyǒu", exZh:"Maaf, tidak ada."},
+      {id:"是", syl:"shì", zh:"adalah/ya", ex:"是的，我明白。", exSyl:"shì de, wǒ míngbai", exZh:"Ya, saya mengerti."},
+      {id:"不是", syl:"bú shì", zh:"bukan", ex:"不是，你弄错了。", exSyl:"bú shì, nǐ nòng cuò le", exZh:"Bukan, kamu salah."},
+      {id:"对", syl:"duì", zh:"benar", ex:"对，就是这样。", exSyl:"duì, jiù shì zhèyàng", exZh:"Benar, seperti itu."},
+      {id:"不对", syl:"bú duì", zh:"salah", ex:"不对，不是这样。", exSyl:"bú duì, bú shì zhèyàng", exZh:"Salah, bukan begitu."},
+      {id:"行", syl:"xíng", zh:"oke/bisa", ex:"行，走吧。", exSyl:"xíng, zǒu ba", exZh:"Oke, ayo pergi."},
+      {id:"没问题", syl:"méi wèntí", zh:"tidak masalah", ex:"没问题，交给我。", exSyl:"méi wèntí, jiāo gěi wǒ", exZh:"Tidak masalah, serahkan pada saya."},
+      {id:"等一下", syl:"děng yíxià", zh:"tunggu sebentar", ex:"等一下，我马上来。", exSyl:"děng yíxià, wǒ mǎshàng lái", exZh:"Tunggu sebentar, saya segera datang."},
+      {id:"马上", syl:"mǎshàng", zh:"segera", ex:"我马上就到。", exSyl:"wǒ mǎshàng jiù dào", exZh:"Saya segera sampai."},
+      {id:"现在", syl:"xiànzài", zh:"sekarang", ex:"现在几点了？", exSyl:"xiànzài jǐ diǎn le", exZh:"Sekarang jam berapa?"},
+      {id:"以前", syl:"yǐqián", zh:"sebelumnya", ex:"以前我住在北京。", exSyl:"yǐqián wǒ zhù zài Běijīng", exZh:"Dulu saya tinggal di Beijing."},
+      {id:"以后", syl:"yǐhòu", zh:"nanti/setelah ini", ex:"以后再说吧。", exSyl:"yǐhòu zài shuō ba", exZh:"Nanti dibicarakan lagi."},
+      {id:"今天", syl:"jīntiān", zh:"hari ini", ex:"今天天气很好。", exSyl:"jīntiān tiānqì hěn hǎo", exZh:"Hari ini cuacanya bagus."},
+      {id:"明天", syl:"míngtiān", zh:"besok", ex:"明天见。", exSyl:"míngtiān jiàn", exZh:"Sampai besok."},
+      {id:"昨天", syl:"zuótiān", zh:"kemarin", ex:"昨天我很忙。", exSyl:"zuótiān wǒ hěn máng", exZh:"Kemarin saya sibuk."},
+      {id:"什么", syl:"shénme", zh:"apa", ex:"这是什么？", exSyl:"zhè shì shénme", exZh:"Ini apa?"},
+      {id:"谁", syl:"shéi", zh:"siapa", ex:"他是谁？", exSyl:"tā shì shéi", exZh:"Dia siapa?"},
+      {id:"哪里", syl:"nǎlǐ", zh:"di mana", ex:"你在哪里？", exSyl:"nǐ zài nǎlǐ", exZh:"Kamu di mana?"},
+      {id:"哪儿", syl:"nǎr", zh:"di mana", ex:"你去哪儿？", exSyl:"nǐ qù nǎr", exZh:"Kamu pergi ke mana?"},
+      {id:"为什么", syl:"wèishénme", zh:"mengapa", ex:"为什么不来？", exSyl:"wèishénme bù lái", exZh:"Kenapa tidak datang?"},
+      {id:"怎么", syl:"zěnme", zh:"bagaimana", ex:"这个怎么用？", exSyl:"zhège zěnme yòng", exZh:"Ini bagaimana pakainya?"},
+      {id:"多少", syl:"duōshao", zh:"berapa", ex:"多少钱？", exSyl:"duōshao qián", exZh:"Berapa harganya?"},
+      {id:"几", syl:"jǐ", zh:"berapa", ex:"现在几点？", exSyl:"xiànzài jǐ diǎn", exZh:"Sekarang jam berapa?"},
+      {id:"什么时候", syl:"shénme shíhou", zh:"kapan", ex:"你什么时候来？", exSyl:"nǐ shénme shíhou lái", exZh:"Kamu datang kapan?"},
+      {id:"我不知道", syl:"wǒ bù zhīdào", zh:"saya tidak tahu", ex:"对不起，我不知道。", exSyl:"duìbuqǐ, wǒ bù zhīdào", exZh:"Maaf, saya tidak tahu."},
+      {id:"我知道", syl:"wǒ zhīdào", zh:"saya tahu", ex:"我知道，谢谢你。", exSyl:"wǒ zhīdào, xièxie nǐ", exZh:"Saya tahu, terima kasih."},
+      {id:"我明白了", syl:"wǒ míngbai le", zh:"saya mengerti", ex:"好，我明白了。", exSyl:"hǎo, wǒ míngbai le", exZh:"Oke, saya mengerti."},
+      {id:"我不明白", syl:"wǒ bù míngbai", zh:"saya tidak mengerti", ex:"对不起，我不明白。", exSyl:"duìbuqǐ, wǒ bù míngbai", exZh:"Maaf, saya tidak mengerti."},
+      {id:"没听懂", syl:"méi tīng dǒng", zh:"tidak mengerti yang didengar", ex:"不好意思，没听懂。", exSyl:"bù hǎoyìsi, méi tīng dǒng", exZh:"Maaf, saya tidak paham yang didengar."},
+      {id:"请再说一遍", syl:"qǐng zài shuō yí biàn", zh:"tolong ulangi", ex:"请再说一遍，好吗？", exSyl:"qǐng zài shuō yí biàn, hǎo ma", exZh:"Tolong ulangi, ya?"},
+      {id:"说慢一点", syl:"shuō màn yìdiǎn", zh:"bicara lebih pelan", ex:"请说慢一点。", exSyl:"qǐng shuō màn yìdiǎn", exZh:"Tolong bicara lebih pelan."},
+      {id:"等等", syl:"děngděng", zh:"tunggu", ex:"等等，我忘了东西。", exSyl:"děngděng, wǒ wàng le dōngxi", exZh:"Tunggu, saya lupa sesuatu."},
+      {id:"快点", syl:"kuài diǎn", zh:"cepat sedikit", ex:"快点，要迟到了。", exSyl:"kuài diǎn, yào chídào le", exZh:"Cepat, hampir terlambat."},
+      {id:"慢一点", syl:"màn yìdiǎn", zh:"lebih pelan sedikit", ex:"请慢一点开车。", exSyl:"qǐng màn yìdiǎn kāichē", exZh:"Tolong mengemudi lebih pelan."},
+      {id:"小心", syl:"xiǎoxīn", zh:"hati-hati", ex:"小心！有车。", exSyl:"xiǎoxīn, yǒu chē", exZh:"Hati-hati! Ada mobil."},
+      {id:"没事", syl:"méi shì", zh:"tidak apa-apa", ex:"没事，别担心。", exSyl:"méi shì, bié dānxīn", exZh:"Tidak apa-apa, jangan khawatir."},
+      {id:"真的", syl:"zhēn de", zh:"sungguh", ex:"真的吗？", exSyl:"zhēn de ma", exZh:"Sungguh?"},
+      {id:"当然", syl:"dāngrán", zh:"tentu saja", ex:"当然，我很乐意。", exSyl:"dāngrán, wǒ hěn lèyì", exZh:"Tentu, dengan senang hati."},
+      {id:"可能", syl:"kěnéng", zh:"mungkin", ex:"可能下雨了。", exSyl:"kěnéng xià yǔ le", exZh:"Mungkin hujan."},
+      {id:"当然可以", syl:"dāngrán kěyǐ", zh:"tentu saja bisa", ex:"当然可以，没问题。", exSyl:"dāngrán kěyǐ, méi wèntí", exZh:"Tentu bisa, tidak masalah."}
+    ],
+
+    "中文：核心句 ⭐": [
+      {id:"我想……", syl:"wǒ xiǎng…", zh:"Saya ingin…", ex:"我想去中国。", exSyl:"wǒ xiǎng qù Zhōngguó", exZh:"Saya ingin pergi ke Tiongkok."},
+      {id:"我要……", syl:"wǒ yào…", zh:"Saya mau…", ex:"我要一杯咖啡。", exSyl:"wǒ yào yì bēi kāfēi", exZh:"Saya mau satu gelas kopi."},
+      {id:"我不要……", syl:"wǒ bú yào…", zh:"Saya tidak mau…", ex:"我不要辣的。", exSyl:"wǒ bú yào là de", exZh:"Saya tidak mau yang pedas."},
+      {id:"我喜欢……", syl:"wǒ xǐhuan…", zh:"Saya suka…", ex:"我喜欢学汉语。", exSyl:"wǒ xǐhuan xué Hànyǔ", exZh:"Saya suka belajar Mandarin."},
+      {id:"我不喜欢……", syl:"wǒ bù xǐhuan…", zh:"Saya tidak suka…", ex:"我不喜欢下雨天。", exSyl:"wǒ bù xǐhuan xià yǔ tiān", exZh:"Saya tidak suka hari hujan."},
+      {id:"有没有……？", syl:"yǒu méiyǒu…?", zh:"Apakah ada…?", ex:"有没有Wi-Fi？", exSyl:"yǒu méiyǒu Wi-Fi", exZh:"Ada Wi-Fi?"},
+      {id:"在哪里？", syl:"zài nǎlǐ", zh:"Di mana?", ex:"洗手间在哪里？", exSyl:"xǐshǒujiān zài nǎlǐ", exZh:"Toilet di mana?"},
+      {id:"多少钱？", syl:"duōshao qián", zh:"Berapa harganya?", ex:"这个多少钱？", exSyl:"zhège duōshao qián", exZh:"Ini berapa harganya?"},
+      {id:"怎么……？", syl:"zěnme…?", zh:"Bagaimana…?", ex:"怎么去机场？", exSyl:"zěnme qù jīchǎng", exZh:"Bagaimana ke bandara?"},
+      {id:"可以……吗？", syl:"kěyǐ… ma", zh:"Apakah boleh/bisa…?", ex:"可以刷卡吗？", exSyl:"kěyǐ shuākǎ ma", exZh:"Bisa bayar pakai kartu?"},
+      {id:"我可以……吗？", syl:"wǒ kěyǐ… ma", zh:"Bolehkah saya…?", ex:"我可以坐这里吗？", exSyl:"wǒ kěyǐ zuò zhèlǐ ma", exZh:"Boleh saya duduk di sini?"},
+      {id:"请给我……", syl:"qǐng gěi wǒ…", zh:"Tolong berikan saya…", ex:"请给我一杯水。", exSyl:"qǐng gěi wǒ yì bēi shuǐ", exZh:"Tolong beri saya segelas air."},
+      {id:"帮我一下。", syl:"bāng wǒ yíxià", zh:"Tolong bantu saya sebentar.", ex:"你好，帮我一下。", exSyl:"nǐ hǎo, bāng wǒ yíxià", exZh:"Halo, tolong bantu saya."},
+      {id:"我不知道。", syl:"wǒ bù zhīdào", zh:"Saya tidak tahu.", ex:"对不起，我不知道。", exSyl:"duìbuqǐ, wǒ bù zhīdào", exZh:"Maaf, saya tidak tahu."},
+      {id:"我听不懂。", syl:"wǒ tīng bù dǒng", zh:"Saya tidak mengerti yang Anda katakan.", ex:"不好意思，我听不懂。", exSyl:"bù hǎoyìsi, wǒ tīng bù dǒng", exZh:"Maaf, saya tidak paham."},
+      {id:"请说慢一点。", syl:"qǐng shuō màn yìdiǎn", zh:"Tolong bicara lebih pelan.", ex:"请说慢一点，好吗？", exSyl:"qǐng shuō màn yìdiǎn, hǎo ma", exZh:"Tolong bicara lebih pelan, ya?"},
+      {id:"请再说一遍。", syl:"qǐng zài shuō yí biàn", zh:"Tolong katakan sekali lagi.", ex:"对不起，请再说一遍。", exSyl:"duìbuqǐ, qǐng zài shuō yí biàn", exZh:"Maaf, tolong ulangi."},
+      {id:"这是什么？", syl:"zhè shì shénme", zh:"Ini apa?", ex:"请问，这是什么？", exSyl:"qǐngwèn, zhè shì shénme", exZh:"Permisi, ini apa?"},
+      {id:"那是什么？", syl:"nà shì shénme", zh:"Itu apa?", ex:"那是什么？很好看。", exSyl:"nà shì shénme, hěn hǎokàn", exZh:"Itu apa? Bagus sekali."},
+      {id:"你在做什么？", syl:"nǐ zài zuò shénme", zh:"Kamu sedang melakukan apa?", ex:"嗨，你在做什么？", exSyl:"hāi, nǐ zài zuò shénme", exZh:"Hai, kamu sedang apa?"}
+    ]
+  };
+  
+  let currentCategory = "Salam & Ungkapan";
+  let currentIndex = 0;
+  let currentCards = [...data[currentCategory]];
+  
+  const categoriesEl = document.getElementById('categories');
+  const cardEl = document.getElementById('card');
+  const cardFrontEl = document.getElementById('cardFront');
+  const cardBackEl = document.getElementById('cardBack');
+  const progressEl = document.getElementById('progress');
+  const progressFillEl = document.getElementById('progressFill');
+  
+  /* Helper: apakah kategori Mandarin? */
+  function isChineseCategory(cat) {
+    return cat.startsWith('中文');
+  }
+  
+  /* Build category buttons */
+  Object.keys(data).forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (cat === currentCategory ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = (e) => selectCategory(cat, e);
+    categoriesEl.appendChild(btn);
+  });
+  
+  function selectCategory(cat, e) {
+    currentCategory = cat;
+    currentIndex = 0;
+    currentCards = [...data[cat]];
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    if (e && e.target) e.target.classList.add('active');
+    renderCard();
+  }
+  
+  function renderCard() {
+    const item = currentCards[currentIndex];
+    cardEl.classList.remove('flipped');
+    cardEl.classList.remove('animate-in');
+    void cardEl.offsetWidth;
+    cardEl.classList.add('animate-in');
+    
+    const isZh = isChineseCategory(currentCategory);
+    
+    cardFrontEl.innerHTML = `
+      <div class="category-tag">${currentCategory}</div>
+      <div class="indonesian">${item.id}</div>
+      <div class="syllable">${item.syl}</div>
+      <div class="chinese">${item.zh}</div>
+      <button class="audio-btn" onclick="playAudio(event)">🔊</button>
+      <div class="audio-label">${isZh ? 'Tekan untuk dengar (中文)' : 'Tekan untuk dengar'}</div>
+    `;
+    
+    const label1 = isZh ? '🇨🇳 Bahasa Mandarin' : '🇮🇩 Bahasa Indonesia';
+    const label2 = isZh ? '🇮🇩 Bahasa Indonesia' : '🇨🇳 Bahasa Mandarin';
+    const tagLabel = isZh ? '例句 Contoh Kalimat' : 'Contoh Kalimat';
+    
+    cardBackEl.innerHTML = `
+      <div class="category-tag">${tagLabel}</div>
+      <div class="example-sentence">
+        <div class="label">${label1}</div>
+        <div class="id">${item.ex}</div>
+        <div class="syl">${item.exSyl}</div>
+        <div class="zh">${label2} — ${item.exZh}</div>
+      </div>
+      <button class="audio-btn" style="margin-top:20px" onclick="playSentence(event)">🔊</button>
+      <div class="audio-label">${isZh ? 'Dengar kalimat (中文)' : 'Dengar kalimat'}</div>
+    `;
+    
+    progressEl.textContent = `${currentIndex + 1} / ${currentCards.length}`;
+    progressFillEl.style.width = `${((currentIndex + 1) / currentCards.length) * 100}%`;
+  }
+  
+  cardEl.addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') cardEl.classList.toggle('flipped');
+  });
+  
+  function playAudio(e) {
+    if (e) e.stopPropagation();
+    const item = currentCards[currentIndex];
+    speak(item.id);
+  }
+  
+  function playSentence(e) {
+    if (e) e.stopPropagation();
+    const item = currentCards[currentIndex];
+    speak(item.ex);
+  }
+  
+  function speak(text) {
+    if (!('speechSynthesis' in window)) {
+      alert('Browser Anda tidak mendukung fitur suara.');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    const isZh = isChineseCategory(currentCategory);
+    utter.lang = isZh ? 'zh-CN' : 'id-ID';
+    utter.rate = isZh ? 0.9 : 0.85;
+    utter.pitch = 1;
+    
+    const btn = document.querySelector('.audio-btn:not([style*="margin"])');
+    if (btn) {
+      btn.classList.add('playing');
+      utter.onend = () => btn.classList.remove('playing');
+      utter.onerror = () => btn.classList.remove('playing');
+    }
+    
+    const voices = window.speechSynthesis.getVoices();
+    const langPrefix = isZh ? 'zh' : 'id';
+    const v = voices.find(v => v.lang.toLowerCase().startsWith(langPrefix));
+    if (v) utter.voice = v;
+    
+    window.speechSynthesis.speak(utter);
+  }
+  
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {};
+  }
+  
+  function nextCard() {
+    currentIndex = (currentIndex + 1) % currentCards.length;
+    renderCard();
+  }
+  
+  function prevCard() {
+    currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length;
+    renderCard();
+  }
+  
+  function shuffleCards() {
+    for (let i = currentCards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [currentCards[i], currentCards[j]] = [currentCards[j], currentCards[i]];
+    }
+    currentIndex = 0;
+    renderCard();
+  }
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') nextCard();
+    else if (e.key === 'ArrowLeft') prevCard();
+    else if (e.key === ' ') { e.preventDefault(); playAudio(); }
+    else if (e.key === 'Enter') cardEl.classList.toggle('flipped');
+  });
+  
+  renderCard();
+</script>
+
+</body>
+</html>
