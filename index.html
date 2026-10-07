@@ -45,6 +45,8 @@
   @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
   .card.animate-in { animation: slideIn 0.4s ease; }
   @keyframes slideIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+  .voice-warning { display: none; max-width: 480px; margin: 10px auto; padding: 12px 18px; background: #fff3cd; color: #856404; border-left: 4px solid #ffc107; border-radius: 10px; font-size: 0.85rem; }
+  .voice-warning.show { display: block; }
   @media (max-width: 500px) { .header h1 { font-size: 1.5rem; } .indonesian { font-size: 2.2rem; } .chinese { font-size: 1.8rem; } .syllable { font-size: 1.3rem; } }
 </style>
 </head>
@@ -53,6 +55,10 @@
 <div class="header">
   <h1>Belajar Bahasa Indonesia & Mandarin</h1>
   <p>学印尼语 & 汉语 — By lcnpalembang-08994477998</p>
+</div>
+
+<div id="voiceWarning" class="voice-warning">
+  ⚠️ Voice Bahasa Indonesia tidak ditemukan di perangkat ini. Silakan install paket bahasa Indonesia di pengaturan Sistem → Bahasa & Suara.
 </div>
 
 <div class="categories" id="categories"></div>
@@ -77,8 +83,7 @@
 
 <script>
 /* ============================================================
-   DATA: id=Hanzi/kata, zh=arti Indonesia, ex=kalimat
-   (pinyin/syl tidak dipakai lagi untuk tampilan)
+   DATA
    ============================================================ */
 const data = {
   "Salam & Ungkapan": [
@@ -474,18 +479,18 @@ const data = {
     {id:"当然可以", zh:"tentu bisa", ex:"当然可以，没问题。", exZh:"Tentu bisa, tidak masalah."}
   ],
   "中文：核心句 ⭐": [
-    {id:"我想……", zh:"Saya ingin…", ex:"我想去中国。", exZh:"Saya ingin pergi ke Tiongkok."},
-    {id:"我要……", zh:"Saya mau…", ex:"我要一杯咖啡。", exZh:"Saya mau satu gelas kopi."},
-    {id:"我不要……", zh:"Saya tidak mau…", ex:"我不要辣的。", exZh:"Saya tidak mau yang pedas."},
-    {id:"我喜欢……", zh:"Saya suka…", ex:"我喜欢学汉语。", exZh:"Saya suka belajar Mandarin."},
-    {id:"我不喜欢……", zh:"Saya tidak suka…", ex:"我不喜欢下雨天。", exZh:"Saya tidak suka hari hujan."},
-    {id:"有没有……？", zh:"Apakah ada…?", ex:"有没有Wi-Fi？", exZh:"Ada Wi-Fi?"},
-    {id:"在哪里？", zh:"Di mana?", ex:"洗手间在哪里？", exZh:"Toilet di mana?"},
-    {id:"多少钱？", zh:"Berapa harganya?", ex:"这个多少钱？", exZh:"Ini berapa harganya?"},
-    {id:"怎么……？", zh:"Bagaimana…?", ex:"怎么去机场？", exZh:"Bagaimana ke bandara?"},
-    {id:"可以……吗？", zh:"Bolehkah…?", ex:"可以刷卡吗？", exZh:"Bisa bayar pakai kartu?"},
-    {id:"我可以……吗？", zh:"Bolehkah saya…?", ex:"我可以坐这里吗？", exZh:"Boleh saya duduk di sini?"},
-    {id:"请给我……", zh:"Tolong beri saya…", ex:"请给我一杯水。", exZh:"Tolong beri saya segelas air."},
+    {id:"我想……", zh:"Saya ingin", ex:"我想去中国。", exZh:"Saya ingin pergi ke Tiongkok."},
+    {id:"我要……", zh:"Saya mau", ex:"我要一杯咖啡。", exZh:"Saya mau satu gelas kopi."},
+    {id:"我不要……", zh:"Saya tidak mau", ex:"我不要辣的。", exZh:"Saya tidak mau yang pedas."},
+    {id:"我喜欢……", zh:"Saya suka", ex:"我喜欢学汉语。", exZh:"Saya suka belajar Mandarin."},
+    {id:"我不喜欢……", zh:"Saya tidak suka", ex:"我不喜欢下雨天。", exZh:"Saya tidak suka hari hujan."},
+    {id:"有没有……？", zh:"Apakah ada", ex:"有没有Wi-Fi？", exZh:"Ada Wi-Fi?"},
+    {id:"在哪里？", zh:"Di mana", ex:"洗手间在哪里？", exZh:"Toilet di mana?"},
+    {id:"多少钱？", zh:"Berapa harganya", ex:"这个多少钱？", exZh:"Ini berapa harganya?"},
+    {id:"怎么……？", zh:"Bagaimana", ex:"怎么去机场？", exZh:"Bagaimana ke bandara?"},
+    {id:"可以……吗？", zh:"Bolehkah", ex:"可以刷卡吗？", exZh:"Bisa bayar pakai kartu?"},
+    {id:"我可以……吗？", zh:"Bolehkah saya", ex:"我可以坐这里吗？", exZh:"Boleh saya duduk di sini?"},
+    {id:"请给我……", zh:"Tolong beri saya", ex:"请给我一杯水。", exZh:"Tolong beri saya segelas air."},
     {id:"帮我一下。", zh:"Tolong bantu saya.", ex:"你好，帮我一下。", exZh:"Halo, tolong bantu saya."},
     {id:"我不知道。", zh:"Saya tidak tahu.", ex:"对不起，我不知道。", exZh:"Maaf, saya tidak tahu."},
     {id:"我听不懂。", zh:"Saya tidak paham.", ex:"不好意思，我听不懂。", exZh:"Maaf, saya tidak paham."},
@@ -498,75 +503,126 @@ const data = {
 };
 
 /* ============================================================
-   FUNGSI PEMISAH SUKU KATA BAHASA INDONESIA
-   Contoh: "rumah" -> "ru-mah", "keluarga" -> "ke-lu-ar-ga"
+   TTS: PILIH VOICE BAHASA INDONESIA (ROBUST)
    ============================================================ */
-function splitWord(word) {
-  if (!word || word.length < 2) return word;
-  // Abbreviations (HP, AC, TV, dll) dibiarkan
-  if (/^[A-Z]+$/.test(word) && word.length <= 4) return word;
-  
-  const lower = word.toLowerCase();
-  const vowels = 'aiueo';
-  const isV = c => vowels.includes(c);
-  const digraphs = ['ng','ny','sy','kh'];
-  const diphthongs = ['ai','au','ei','oi'];
-  
-  const result = [];
-  let current = '';
-  let i = 0;
-  
-  while (i < lower.length) {
-    current += word[i];
-    const c = lower[i];
-    const next = lower[i+1];
-    const nn = lower[i+2];
-    
-    if (i === lower.length - 1) break;
-    
-    let shouldBreak = false;
-    
-    if (isV(c) && next && isV(next)) {
-      // V-V: pecah kecuali diftong di akhir kata
-      const pair = c + next;
-      if (diphthongs.includes(pair)) {
-        if (i + 2 !== lower.length) shouldBreak = true; // diftong hanya jika di akhir
-      } else {
-        shouldBreak = true;
-      }
-    } else if (isV(c) && next && !isV(next)) {
-      // V-C: pecah jika C+V dan bukan digraf
-      if (nn && isV(nn)) {
-        const pair = next + nn;
-        if (!digraphs.includes(pair)) shouldBreak = true;
-      }
-    } else if (!isV(c) && next && !isV(next)) {
-      // C-C: pecah kecuali digraf
-      const pair = c + next;
-      if (!digraphs.includes(pair)) shouldBreak = true;
-    }
-    
-    if (shouldBreak) {
-      result.push(current);
-      current = '';
-    }
-    i++;
+let idVoice = null;
+let voicesLoaded = false;
+
+function loadVoices() {
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) {
+    voicesLoaded = false;
+    return false;
   }
-  if (current) result.push(current);
   
-  return result.length > 1 ? result.join('-') : word;
+  // Prioritas pencarian voice Indonesia
+  idVoice =
+    voices.find(v => v.lang.toLowerCase() === 'id-id') ||
+    voices.find(v => v.lang.toLowerCase() === 'id_id') ||
+    voices.find(v => v.lang.toLowerCase().startsWith('id-')) ||
+    voices.find(v => v.lang.toLowerCase() === 'id') ||
+    voices.find(v => v.name.toLowerCase().includes('indonesia')) ||
+    voices.find(v => v.name.toLowerCase().includes('damayanti')) ||
+    voices.find(v => v.name.toLowerCase().includes('andika')) ||
+    voices.find(v => v.name.toLowerCase().includes('gadis')) ||
+    voices.find(v => v.name.toLowerCase().includes('ardi')) ||
+    null;
+  
+  voicesLoaded = true;
+  
+  console.log('%c🎙️ TTS Info', 'color: #5c6bc0; font-weight: bold;');
+  console.log('   Voice Indonesia terpilih:', idVoice ? `"${idVoice.name}" (${idVoice.lang})` : '❌ TIDAK ADA');
+  console.log('   Semua voice tersedia:', voices.map(v => `${v.name} [${v.lang}]`).join(', '));
+  
+  const warn = document.getElementById('voiceWarning');
+  if (warn) {
+    if (!idVoice) warn.classList.add('show');
+    else warn.classList.remove('show');
+  }
+  
+  return !!idVoice;
 }
 
-function splitIndo(text) {
-  if (!text) return text;
-  return text.split(/([a-zA-Z]+)/).map(part => {
-    if (/^[a-zA-Z]+$/.test(part) && part.length > 1) return splitWord(part);
-    return part;
-  }).join('');
+// Trigger load berkali-kali (Chrome bug)
+if ('speechSynthesis' in window) {
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+  // Retry beberapa kali untuk memastikan voice sudah dimuat
+  let retries = 0;
+  const retryTimer = setInterval(() => {
+    if (loadVoices() || ++retries > 20) clearInterval(retryTimer);
+  }, 250);
 }
 
 /* ============================================================
-   LOGIKA APLIKASI
+   BERSIHKAN TEKS: HANYA SISAKAN HURUF LATIN + TANDA BACA DASAR
+   ============================================================ */
+function cleanTextForIndonesian(text) {
+  if (!text) return '';
+  return String(text)
+    // Buang Hanzi & karakter CJK
+    .replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g, '')
+    // Buang diakritik pinyin (ā á ǎ à, ě, ī, ǒ, ū, ǖ dst)
+    .replace(/[\u0100-\u024F\u0300-\u036F]/g, m => {
+      const map = { 'ā':'a','á':'a','ǎ':'a','à':'a','ē':'e','é':'e','ě':'e','è':'e',
+                    'ī':'i','í':'i','ǐ':'i','ì':'i','ō':'o','ó':'o','ǒ':'o','ò':'o',
+                    'ū':'u','ú':'u','ǔ':'u','ù':'u','ǖ':'ü','ǘ':'ü','ǚ':'ü','ǜ':'ü',
+                    'ń':'n','ň':'n','ḿ':'m' };
+      return map[m] || '';
+    })
+    // Buang tanda baca Mandarin & simbol aneh
+    .replace(/[，。！？、；：""''《》【】（）〈〉「」『』…—－～·]/g, ' ')
+    // Rapikan spasi
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/* ============================================================
+   FUNGSI UTAMA TTS
+   ============================================================ */
+function speak(text) {
+  if (!('speechSynthesis' in window)) {
+    alert('Browser Anda tidak mendukung fitur suara.');
+    return;
+  }
+  
+  const clean = cleanTextForIndonesian(text);
+  if (!clean) {
+    console.warn('Text kosong setelah dibersihkan:', text);
+    return;
+  }
+  
+  // Pastikan voice sudah dimuat
+  if (!voicesLoaded || !idVoice) loadVoices();
+  
+  window.speechSynthesis.cancel();
+  
+  const utter = new SpeechSynthesisUtterance(clean);
+  // WAJIB: paksa lang id-ID
+  utter.lang = 'id-ID';
+  utter.rate = 0.85;
+  utter.pitch = 1;
+  utter.volume = 1;
+  
+  // Pilih voice Indonesia jika ada
+  if (idVoice) {
+    utter.voice = idVoice;
+  } else {
+    console.warn('⚠️ Voice id-ID tidak tersedia. Browser akan memakai voice default.');
+  }
+  
+  const btn = document.querySelector('.audio-btn:not([style*="margin"])');
+  if (btn) {
+    btn.classList.add('playing');
+    utter.onend = () => btn.classList.remove('playing');
+    utter.onerror = () => btn.classList.remove('playing');
+  }
+  
+  window.speechSynthesis.speak(utter);
+}
+
+/* ============================================================
+   LOGIKA KARTU
    ============================================================ */
 let currentCategory = "Salam & Ungkapan";
 let currentIndex = 0;
@@ -608,7 +664,6 @@ function renderCard() {
   const isZh = isChineseCategory(currentCategory);
   
   if (isZh) {
-    /* ===== KARTU MANDARIN: Hanzi di atas, ejaan Indonesia (per suku kata) di bawah ===== */
     cardFrontEl.innerHTML = `
       <div class="category-tag">${currentCategory}</div>
       <div class="chinese">${item.id}</div>
@@ -616,7 +671,6 @@ function renderCard() {
       <button class="audio-btn" onclick="playAudio(event)">🔊</button>
       <div class="audio-label">Tekan untuk dengar</div>
     `;
-    
     cardBackEl.innerHTML = `
       <div class="category-tag">例句 Contoh Kalimat</div>
       <div class="example-sentence">
@@ -628,7 +682,6 @@ function renderCard() {
       <div class="audio-label">Dengar kalimat</div>
     `;
   } else {
-    /* ===== KARTU INDONESIA: seperti semula ===== */
     cardFrontEl.innerHTML = `
       <div class="category-tag">${currentCategory}</div>
       <div class="indonesian">${item.id}</div>
@@ -637,7 +690,6 @@ function renderCard() {
       <button class="audio-btn" onclick="playAudio(event)">🔊</button>
       <div class="audio-label">Tekan untuk dengar</div>
     `;
-    
     cardBackEl.innerHTML = `
       <div class="category-tag">Contoh Kalimat</div>
       <div class="example-sentence">
@@ -659,14 +711,13 @@ cardEl.addEventListener('click', (e) => {
   if (e.target.tagName !== 'BUTTON') cardEl.classList.toggle('flipped');
 });
 
-/* ===== TTS SELALU BAHASA INDONESIA ===== */
 function playAudio(e) {
   if (e) e.stopPropagation();
   const item = currentCards[currentIndex];
   if (isChineseCategory(currentCategory)) {
-    speak(item.zh, 'id-ID');       // bacakan arti Indonesianya
+    speak(item.zh);   // baca arti Indonesia
   } else {
-    speak(item.id, 'id-ID');
+    speak(item.id);   // baca kata Indonesia
   }
 }
 
@@ -674,47 +725,77 @@ function playSentence(e) {
   if (e) e.stopPropagation();
   const item = currentCards[currentIndex];
   if (isChineseCategory(currentCategory)) {
-    speak(item.exZh, 'id-ID');     // bacakan terjemahan Indonesianya
+    speak(item.exZh); // baca terjemahan Indonesia
   } else {
-    speak(item.ex, 'id-ID');
+    speak(item.ex);   // baca kalimat Indonesia
   }
 }
 
-function speak(text, lang) {
-  if (!('speechSynthesis' in window)) { alert('Browser Anda tidak mendukung fitur suara.'); return; }
-  let clean = String(text)
-    .replace(/[\u0100-\u017F\u0180-\u024F\u0300-\u036F]/g, '')
-    .replace(/[，。！？、；：""''《》【】（）]/g, ' ')
-    .trim();
-  if (!clean) return;
+/* ============================================================
+   PEMISAH SUKU KATA
+   ============================================================ */
+function splitWord(word) {
+  if (!word || word.length < 2) return word;
+  if (/^[A-Z]+$/.test(word) && word.length <= 4) return word;
   
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(clean);
-  utter.lang = lang || 'id-ID';
-  utter.rate = 0.85;
-  utter.pitch = 1;
-  utter.volume = 1;
+  const lower = word.toLowerCase();
+  const vowels = 'aiueo';
+  const isV = c => vowels.includes(c);
+  const digraphs = ['ng','ny','sy','kh'];
+  const diphthongs = ['ai','au','ei','oi'];
   
-  const btn = document.querySelector('.audio-btn:not([style*="margin"])');
-  if (btn) {
-    btn.classList.add('playing');
-    utter.onend = () => btn.classList.remove('playing');
-    utter.onerror = () => btn.classList.remove('playing');
+  const result = [];
+  let current = '';
+  let i = 0;
+  
+  while (i < lower.length) {
+    current += word[i];
+    const c = lower[i];
+    const next = lower[i+1];
+    const nn = lower[i+2];
+    
+    if (i === lower.length - 1) break;
+    
+    let shouldBreak = false;
+    
+    if (isV(c) && next && isV(next)) {
+      const pair = c + next;
+      if (diphthongs.includes(pair)) {
+        if (i + 2 !== lower.length) shouldBreak = true;
+      } else {
+        shouldBreak = true;
+      }
+    } else if (isV(c) && next && !isV(next)) {
+      if (nn && isV(nn)) {
+        const pair = next + nn;
+        if (!digraphs.includes(pair)) shouldBreak = true;
+      }
+    } else if (!isV(c) && next && !isV(next)) {
+      const pair = c + next;
+      if (!digraphs.includes(pair)) shouldBreak = true;
+    }
+    
+    if (shouldBreak) {
+      result.push(current);
+      current = '';
+    }
+    i++;
   }
-  
-  const voices = window.speechSynthesis.getVoices();
-  const idVoice = voices.find(v => v.lang.toLowerCase() === 'id-id')
-               || voices.find(v => v.lang.toLowerCase().startsWith('id'));
-  if (idVoice) utter.voice = idVoice;
-  
-  window.speechSynthesis.speak(utter);
+  if (current) result.push(current);
+  return result.length > 1 ? result.join('-') : word;
 }
 
-if ('speechSynthesis' in window) {
-  window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
-  window.speechSynthesis.getVoices();
+function splitIndo(text) {
+  if (!text) return text;
+  return text.split(/([a-zA-Z]+)/).map(part => {
+    if (/^[a-zA-Z]+$/.test(part) && part.length > 1) return splitWord(part);
+    return part;
+  }).join('');
 }
 
+/* ============================================================
+   NAVIGASI
+   ============================================================ */
 function nextCard() { currentIndex = (currentIndex + 1) % currentCards.length; renderCard(); }
 function prevCard() { currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length; renderCard(); }
 function shuffleCards() {
